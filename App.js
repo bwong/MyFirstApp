@@ -1,20 +1,220 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-gesture-handler'; // (keep this at the very top)
+
+import React, { useState, useMemo } from 'react';
+import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Calendar } from 'react-native-calendars';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+// import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
+
+const screenWidth = Dimensions.get("window").width;
+const numDaysInWeek = 7;
+const cellSize = screenWidth / numDaysInWeek; // square width & height
+
+function formatLocalCivilDate({ year, month, day }) {
+  // Construct local midnight; no UTC conversion → no off-by-one.
+  const d = new Date(year, month - 1, day);
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    // no timeZone specified → uses device's local zone
+  }).format(d);
+}
 
 export default function App() {
+
+
+const staticMarks = {
+  "2025-09-20": { 
+    customStyles: {
+      container: {
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: '#2d4150',
+      },
+    },
+    marked: true, 
+    dotColor: "#16a34a" 
+  },
+  "2025-09-21": { 
+    customStyles: {
+      container: {
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: '#2d4150',
+      },
+    },
+    marked: true, 
+    dotColor: "#f43f5e" 
+  },
+  "2025-09-22": {
+    customStyles: {
+      container: {
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: '#2d4150',
+      },
+    },
+    dots: [
+      { key: "workout", color: "#2563eb" },
+      { key: "event", color: "#f59e0b" },
+      { key: "period", color: "#f43f53"},
+    ],
+  },
+};
+
+  const [selected, setSelected] = useState(null);
+
+  const marks = useMemo(() => {
+  if (!selected) return staticMarks;
+
+  const selKey = selected.key;
+  const existing = staticMarks[selKey] ?? {};
+
+  return {
+    ...staticMarks,
+    [selKey]: {
+      ...existing, // keep any static marking (dots, etc.)
+      customStyles: {
+        container: {
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderColor: '#2c7be5',
+          borderRadius: 5,
+          //height: 35,
+          //width: 35,
+        },
+        text: {
+          color: '#2c7be5',
+          fontWeight: 'bold',
+        },
+      },
+    },
+  };
+}, [selected]);
+
+  const dismissGesture = Gesture.Pan()
+  .runOnJS(true)
+  .minDistance(10)         // activate after ~10px in any direction
+  .failOffsetX([-12, 12])  // ignore horizontal swipes (so month-swipe wins)
+  .onUpdate((e) => { /* track translateY for nice animation */ })
+  .onEnd((e) => {
+    if (e.translationY > 60) { console.log('somebody swiped down'); setSelected(null); }
+    if (e.translationY < -60) { console.log('somebody swiped up'); setSelected(null); }
+    
+  });
+
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+
+    <SafeAreaProvider>
+      {/* edges={['top']} keeps it below the notch but lets bottom extend */}
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <Calendar 
+          enableSwipeMonths 
+          onDayPress={({ dateString, year, month, day }) =>
+            setSelected({ key: dateString, year, month, day })
+          }
+          markingType={'custom'}
+          markedDates={marks}
+          style={styles.calendar}
+          theme={{
+            selectedDayBackgroundColor: '#2c7be5',
+            selectedDayTextColor: '#fff',
+            todayTextColor: '#2c7be5',
+            dayTextColor: '#2d4150',
+            textDisabledColor: '#d9e1e8',
+            dotColor: '#00adf5',
+            selectedDotColor: '#ffffff',
+            arrowColor: '#2c7be5',
+            monthTextColor: '#2c7be5',
+            indicatorColor: '#2c7be5',
+            textDayFontWeight: '300',
+            textMonthFontWeight: 'bold',
+            textDayHeaderFontWeight: '300',
+            textDayFontSize: 16,
+            textMonthFontSize: 16,
+            textDayHeaderFontSize: 13,
+            // Debug: outline each day cell without changing layout or tap behavior
+            'stylesheet.day.basic': {
+              base: {
+                borderWidth: 1,
+                //borderColor: 'purple',
+                borderStyle: 'solid',
+                borderRadius: 5,
+                width: cellSize,
+                height: cellSize,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: -15,
+              },
+            },
+          }}
+        />
+        {/* bottom card */}
+        {selected && (
+            <GestureDetector gesture={dismissGesture}>
+
+          <View style={[styles.card]}>
+            {/* dismiss button */}
+             <Pressable onPress={() => {
+              console.log('hi pressed X')
+              setSelected(null)}
+            } style={styles.dismissBtn}>
+              <Text style={styles.dismissText}>×</Text>
+            </Pressable>
+
+            <Text style={styles.cardTitle}>Selected date</Text>
+            <Text style={styles.cardText}>
+              hello, the data for the selected day is{' '}
+              {formatLocalCivilDate(selected)}
+            </Text>
+          </View>
+          </GestureDetector>
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: { flex: 1, backgroundColor: '#fff' },
+  // calendar: { flex: 1 },
+  card: {
+    margin: 16,
+    marginTop: 80,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    // Android elevation
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
+  dismissBtn: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    padding: 4,
+  },
+  dismissText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#999',
+  },
+  cardTitle: { fontSize: 12, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardText: { fontSize: 16, fontWeight: '600', color: '#222' },
 });
