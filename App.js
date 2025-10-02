@@ -24,6 +24,58 @@ function formatLocalCivilDate({ year, month, day }) {
   }).format(d);
 }
 
+// Custom Day Component for enhanced marking capabilities
+function CustomDayComponent({ date, state, marking, onPress }) {
+  const isSelected = marking?.selected;
+  const hasDots = marking?.dots && marking.dots.length > 0;
+  const hasMark = marking?.marked;
+  
+  // Merge custom styles with default styles
+  const containerStyle = [
+    styles.dayContainer,
+    marking?.customStyles?.container,
+    isSelected && styles.selectedDay
+  ];
+  
+  const textStyle = [
+    styles.dayText,
+    marking?.customStyles?.text,
+    isSelected && styles.selectedDayText
+  ];
+
+  return (
+    <Pressable 
+      style={containerStyle}
+      onPress={() => onPress && onPress({ dateString: date.dateString, year: date.year, month: date.month, day: date.day })}
+    >
+      <Text style={textStyle}>{date.day}</Text>
+      
+      {/* Render multiple dots */}
+      {hasDots && (
+        <View style={styles.dotsContainer}>
+          {marking.dots.slice(0, 3).map((dot, index) => (
+            <View 
+              key={dot.key || index}
+              style={[
+                styles.dot,
+                { backgroundColor: dot.color }
+              ]} 
+            />
+          ))}
+          {marking.dots.length > 3 && (
+            <Text style={styles.moreDotsText}>+{marking.dots.length - 3}</Text>
+          )}
+        </View>
+      )}
+      
+      {/* Single mark dot */}
+      {hasMark && !hasDots && (
+        <View style={[styles.singleDot, { backgroundColor: marking.dotColor }]} />
+      )}
+    </Pressable>
+  );
+}
+
 export default function App() {
 
 
@@ -65,6 +117,37 @@ const staticMarks = {
       { key: "workout", color: "#2563eb" },
       { key: "event", color: "#f59e0b" },
       { key: "period", color: "#f43f53"},
+    ],
+  },
+  "2025-09-23": {
+    customStyles: {
+      container: {
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: '#2d4150',
+      },
+    },
+    dots: [
+      { key: "meeting", color: "#8b5cf6" },
+      { key: "deadline", color: "#ef4444" },
+      { key: "birthday", color: "#f97316" },
+      { key: "reminder", color: "#10b981" },
+      { key: "appointment", color: "#06b6d4" },
+    ],
+  },
+  "2025-09-24": {
+    customStyles: {
+      container: {
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: '#2d4150',
+      },
+    },
+    dots: [
+      { key: "task1", color: "#6366f1" },
+      { key: "task2", color: "#ec4899" },
     ],
   },
 };
@@ -125,9 +208,19 @@ const staticMarks = {
           markingType={'custom'}
           markedDates={marks}
           style={styles.calendar}
+          dayComponent={({ date, state, marking }) => (
+            <CustomDayComponent 
+              date={date} 
+              state={state} 
+              marking={marking}
+              onPress={({ dateString, year, month, day }) =>
+                setSelected({ key: dateString, year, month, day })
+              }
+            />
+          )}
           theme={{
-            selectedDayBackgroundColor: '#2c7be5',
-            selectedDayTextColor: '#fff',
+            selectedDayBackgroundColor: 'transparent',
+            selectedDayTextColor: '#2c7be5',
             todayTextColor: '#2c7be5',
             dayTextColor: '#2d4150',
             textDisabledColor: '#d9e1e8',
@@ -142,20 +235,6 @@ const staticMarks = {
             textDayFontSize: 16,
             textMonthFontSize: 16,
             textDayHeaderFontSize: 13,
-            // Debug: outline each day cell without changing layout or tap behavior
-            'stylesheet.day.basic': {
-              base: {
-                borderWidth: 1,
-                //borderColor: 'purple',
-                borderStyle: 'solid',
-                borderRadius: 5,
-                width: cellSize,
-                height: cellSize,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: -15,
-              },
-            },
           }}
         />
         {/* bottom card */}
@@ -187,6 +266,64 @@ const staticMarks = {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  
+  // Custom Day Component Styles
+  dayContainer: {
+    width: cellSize,
+    height: cellSize,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderStyle: 'solid',
+    borderRadius: 5,
+    marginTop: -14,
+    //marginRight: 14,
+    position: 'relative',
+  },
+  dayText: {
+    fontSize: 16,
+    color: '#2d4150',
+    fontWeight: '300',
+  },
+  selectedDay: {
+    borderWidth: 1,
+    borderColor: '#2c7be5',
+    borderRadius: 5,
+    backgroundColor: 'transparent',
+  },
+  selectedDayText: {
+    color: '#2c7be5',
+    fontWeight: 'bold',
+  },
+  
+  // Dots Styles
+  dotsContainer: {
+    position: 'absolute',
+    bottom: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 1,
+  },
+  singleDot: {
+    position: 'absolute',
+    bottom: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  moreDotsText: {
+    fontSize: 8,
+    color: '#666',
+    marginLeft: 2,
+  },
+  
   // calendar: { flex: 1 },
   card: {
     margin: 16,
