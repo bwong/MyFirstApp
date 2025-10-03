@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler'; // (keep this at the very top)
 
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, Dimensions, Modal } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Dimensions, Modal, ScrollView, Switch } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
@@ -74,6 +74,32 @@ function CustomDayComponent({ date, state, marking, onPress, onLongPress }) {
         <View style={[styles.singleDot, { backgroundColor: marking.dotColor }]} />
       )}
     </Pressable>
+  );
+}
+
+// Reusable Collapsible Card
+function CollapsibleCard({ title, subtitle, expanded, pinOpen, onToggle, onTogglePin, children }) {
+  return (
+    <View style={styles.sectionCard}>
+      <Pressable onPress={onToggle} style={styles.sectionHeader}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          {subtitle ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
+        </View>
+        <View style={styles.sectionHeaderRight}>
+          <View style={styles.pinRow}>
+            <Text style={styles.pinLabel}>Keep open</Text>
+            <Switch value={pinOpen} onValueChange={onTogglePin} />
+          </View>
+          <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
+        </View>
+      </Pressable>
+      {expanded ? (
+        <View style={styles.sectionBody}>
+          {children}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -156,6 +182,12 @@ const staticMarks = {
   const [selected, setSelected] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalDate, setModalDate] = useState(null);
+  const [cards, setCards] = useState({
+    basics: { expanded: true, pinOpen: false },
+    symptoms: { expanded: false, pinOpen: false },
+    intimacy: { expanded: false, pinOpen: false },
+    fertility: { expanded: false, pinOpen: false },
+  });
 
   const marks = useMemo(() => {
   if (!selected) return staticMarks;
@@ -297,16 +329,64 @@ const staticMarks = {
               </Pressable>
             </View>
 
-            {/* Modal Content */}
-            <View style={styles.modalContent}>
-              <Text style={styles.modalContentTitle}>Date Information</Text>
-              <Text style={styles.modalContentText}>
-                This is the modal content for {modalDate ? formatLocalCivilDate(modalDate) : 'the selected date'}.
-              </Text>
-              <Text style={styles.modalContentText}>
-                You can add any content here - forms, lists, details, etc.
-              </Text>
-            </View>
+            {/* Modal Content - Single Scrolling Form with Collapsible Cards */}
+            <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalContentScroll}>
+              <CollapsibleCard
+                title="Cycle Basics"
+                subtitle="The Daily Check-In"
+                expanded={cards.basics.expanded}
+                pinOpen={cards.basics.pinOpen}
+                onToggle={() => {
+                  if (cards.basics.pinOpen) return;
+                  setCards({ ...cards, basics: { ...cards.basics, expanded: !cards.basics.expanded } });
+                }}
+                onTogglePin={(value) => setCards({ ...cards, basics: { ...cards.basics, pinOpen: value, expanded: value ? true : cards.basics.expanded } })}
+              >
+                <Text style={styles.sectionText}>Add basic daily entries like flow, energy, mood, notes.</Text>
+              </CollapsibleCard>
+
+              <CollapsibleCard
+                title="Physical Symptoms"
+                subtitle="Body & Wellness"
+                expanded={cards.symptoms.expanded}
+                pinOpen={cards.symptoms.pinOpen}
+                onToggle={() => {
+                  if (cards.symptoms.pinOpen) return;
+                  setCards({ ...cards, symptoms: { ...cards.symptoms, expanded: !cards.symptoms.expanded } });
+                }}
+                onTogglePin={(value) => setCards({ ...cards, symptoms: { ...cards.symptoms, pinOpen: value, expanded: value ? true : cards.symptoms.expanded } })}
+              >
+                <Text style={styles.sectionText}>Track cramps, headaches, fatigue, GI issues, etc.</Text>
+              </CollapsibleCard>
+
+              <CollapsibleCard
+                title="Intimacy"
+                subtitle="Detailed Log"
+                expanded={cards.intimacy.expanded}
+                pinOpen={cards.intimacy.pinOpen}
+                onToggle={() => {
+                  if (cards.intimacy.pinOpen) return;
+                  setCards({ ...cards, intimacy: { ...cards.intimacy, expanded: !cards.intimacy.expanded } });
+                }}
+                onTogglePin={(value) => setCards({ ...cards, intimacy: { ...cards.intimacy, pinOpen: value, expanded: value ? true : cards.intimacy.expanded } })}
+              >
+                <Text style={styles.sectionText}>Record intimacy details and relevant context.</Text>
+              </CollapsibleCard>
+
+              <CollapsibleCard
+                title="Fertility Data"
+                subtitle="Markers & Tracking"
+                expanded={cards.fertility.expanded}
+                pinOpen={cards.fertility.pinOpen}
+                onToggle={() => {
+                  if (cards.fertility.pinOpen) return;
+                  setCards({ ...cards, fertility: { ...cards.fertility, expanded: !cards.fertility.expanded } });
+                }}
+                onTogglePin={(value) => setCards({ ...cards, fertility: { ...cards.fertility, pinOpen: value, expanded: value ? true : cards.fertility.expanded } })}
+              >
+                <Text style={styles.sectionText}>Capture BBT, LH tests, cervical fluid, and more.</Text>
+              </CollapsibleCard>
+            </ScrollView>
           </SafeAreaView>
         </Modal>
       </SafeAreaView>
@@ -451,6 +531,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  modalContentScroll: {
+    paddingBottom: 40,
+  },
   modalContentTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -462,5 +545,57 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 24,
     marginBottom: 12,
+  },
+
+  // Collapsible Section Styles
+  sectionCard: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  chevron: {
+    fontSize: 18,
+    color: '#9ca3af',
+    marginTop: 6,
+  },
+  sectionBody: {
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  pinRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pinLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginRight: 8,
+  },
+  sectionText: {
+    fontSize: 14,
+    color: '#374151',
   },
 });
