@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler'; // (keep this at the very top)
 
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Dimensions, Modal } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
@@ -25,7 +25,7 @@ function formatLocalCivilDate({ year, month, day }) {
 }
 
 // Custom Day Component for enhanced marking capabilities
-function CustomDayComponent({ date, state, marking, onPress }) {
+function CustomDayComponent({ date, state, marking, onPress, onLongPress }) {
   const isSelected = marking?.selected;
   const hasDots = marking?.dots && marking.dots.length > 0;
   const hasMark = marking?.marked;
@@ -47,6 +47,7 @@ function CustomDayComponent({ date, state, marking, onPress }) {
     <Pressable 
       style={containerStyle}
       onPress={() => onPress && onPress({ dateString: date.dateString, year: date.year, month: date.month, day: date.day })}
+      onLongPress={() => onLongPress && onLongPress({ dateString: date.dateString, year: date.year, month: date.month, day: date.day })}
     >
       <Text style={textStyle}>{date.day}</Text>
       
@@ -153,6 +154,8 @@ const staticMarks = {
 };
 
   const [selected, setSelected] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalDate, setModalDate] = useState(null);
 
   const marks = useMemo(() => {
   if (!selected) return staticMarks;
@@ -181,6 +184,11 @@ const staticMarks = {
     },
   };
 }, [selected]);
+
+  const handleLongPress = ({ dateString, year, month, day }) => {
+    setModalDate({ dateString, year, month, day });
+    setModalVisible(true);
+  };
 
   const dismissGesture = Gesture.Pan()
   .runOnJS(true)
@@ -216,6 +224,7 @@ const staticMarks = {
               onPress={({ dateString, year, month, day }) =>
                 setSelected({ key: dateString, year, month, day })
               }
+              onLongPress={handleLongPress}
             />
           )}
           theme={{
@@ -258,6 +267,48 @@ const staticMarks = {
           </View>
           </GestureDetector>
         )}
+
+        {/* Long Press Modal */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            {/* Header with back and close buttons */}
+            <View style={styles.modalHeader}>
+              <Pressable 
+                style={styles.modalBackButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalBackText}>‹</Text>
+              </Pressable>
+              
+              <Text style={styles.modalTitle}>
+                {modalDate ? formatLocalCivilDate(modalDate) : 'Date Details'}
+              </Text>
+              
+              <Pressable 
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </Pressable>
+            </View>
+
+            {/* Modal Content */}
+            <View style={styles.modalContent}>
+              <Text style={styles.modalContentTitle}>Date Information</Text>
+              <Text style={styles.modalContentText}>
+                This is the modal content for {modalDate ? formatLocalCivilDate(modalDate) : 'the selected date'}.
+              </Text>
+              <Text style={styles.modalContentText}>
+                You can add any content here - forms, lists, details, etc.
+              </Text>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </SafeAreaView>
     </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -354,4 +405,62 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 12, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   cardText: { fontSize: 16, fontWeight: '600', color: '#222' },
+  
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalBackButton: {
+    padding: 8,
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  modalBackText: {
+    fontSize: 24,
+    color: '#2c7be5',
+    fontWeight: 'bold',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#222',
+    flex: 1,
+    textAlign: 'center',
+  },
+  modalCloseButton: {
+    padding: 8,
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  modalContentTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 16,
+  },
+  modalContentText: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+    marginBottom: 12,
+  },
 });
