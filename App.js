@@ -1,28 +1,21 @@
 import 'react-native-gesture-handler'; // (keep this at the very top)
 
 import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, Text, Pressable, Dimensions, Modal, ScrollView, Switch } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Modal, ScrollView, Switch } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 // import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from 'react-native-reanimated';
 
-const screenWidth = Dimensions.get("window").width;
-const numDaysInWeek = 7;
-const cellSize = screenWidth / numDaysInWeek; // square width & height
+// Import utilities
+import { formatLocalCivilDate } from './src/utils/dateUtils';
+import { screenWidth, numDaysInWeek, cellSize, colors, spacing, borderRadius, typography, gestureThresholds } from './src/utils/constants';
 
-function formatLocalCivilDate({ year, month, day }) {
-  // Construct local midnight; no UTC conversion → no off-by-one.
-  const d = new Date(year, month - 1, day);
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    // no timeZone specified → uses device's local zone
-  }).format(d);
-}
+// Import custom hooks
+import { useCalendarState } from './src/hooks/useCalendarState';
+import { useModalState } from './src/hooks/useModalState';
+import { useFormState } from './src/hooks/useFormState';
 
 // Custom Day Component for enhanced marking capabilities
 function CustomDayComponent({ date, state, marking, onPress, onLongPress }) {
@@ -104,132 +97,23 @@ function CollapsibleCard({ title, subtitle, expanded, pinOpen, onToggle, onToggl
 }
 
 export default function App() {
-
-
-const staticMarks = {
-  "2025-09-20": { 
-    customStyles: {
-      container: {
-        backgroundColor: 'transparent',
-      },
-      text: {
-        color: '#2d4150',
-      },
-    },
-    marked: true, 
-    dotColor: "#16a34a" 
-  },
-  "2025-09-21": { 
-    customStyles: {
-      container: {
-        backgroundColor: 'transparent',
-      },
-      text: {
-        color: '#2d4150',
-      },
-    },
-    marked: true, 
-    dotColor: "#f43f5e" 
-  },
-  "2025-09-22": {
-    customStyles: {
-      container: {
-        backgroundColor: 'transparent',
-      },
-      text: {
-        color: '#2d4150',
-      },
-    },
-    dots: [
-      { key: "workout", color: "#2563eb" },
-      { key: "event", color: "#f59e0b" },
-      { key: "period", color: "#f43f53"},
-    ],
-  },
-  "2025-09-23": {
-    customStyles: {
-      container: {
-        backgroundColor: 'transparent',
-      },
-      text: {
-        color: '#2d4150',
-      },
-    },
-    dots: [
-      { key: "meeting", color: "#8b5cf6" },
-      { key: "deadline", color: "#ef4444" },
-      { key: "birthday", color: "#f97316" },
-      { key: "reminder", color: "#10b981" },
-      { key: "appointment", color: "#06b6d4" },
-    ],
-  },
-  "2025-09-24": {
-    customStyles: {
-      container: {
-        backgroundColor: 'transparent',
-      },
-      text: {
-        color: '#2d4150',
-      },
-    },
-    dots: [
-      { key: "task1", color: "#6366f1" },
-      { key: "task2", color: "#ec4899" },
-    ],
-  },
-};
-
-  const [selected, setSelected] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalDate, setModalDate] = useState(null);
-  const [cards, setCards] = useState({
-    basics: { expanded: true, pinOpen: false },
-    symptoms: { expanded: false, pinOpen: false },
-    intimacy: { expanded: false, pinOpen: false },
-    fertility: { expanded: false, pinOpen: false },
-  });
-
-  const marks = useMemo(() => {
-  if (!selected) return staticMarks;
-
-  const selKey = selected.key;
-  const existing = staticMarks[selKey] ?? {};
-
-  return {
-    ...staticMarks,
-    [selKey]: {
-      ...existing, // keep any static marking (dots, etc.)
-      customStyles: {
-        container: {
-          backgroundColor: 'transparent',
-          borderWidth: 1,
-          borderColor: '#2c7be5',
-          borderRadius: 5,
-          //height: 35,
-          //width: 35,
-        },
-        text: {
-          color: '#2c7be5',
-          fontWeight: 'bold',
-        },
-      },
-    },
-  };
-}, [selected]);
+  // Use custom hooks for state management
+  const { selected, marks, handleDayPress, clearSelection } = useCalendarState();
+  const { modalVisible, modalDate, openModal, closeModal } = useModalState();
+  const { cards, handleCardToggle, togglePinOpen } = useFormState();
 
   const handleLongPress = ({ dateString, year, month, day }) => {
-    setModalDate({ dateString, year, month, day });
-    setModalVisible(true);
+    openModal({ dateString, year, month, day });
   };
 
   const dismissGesture = Gesture.Pan()
   .runOnJS(true)
-  .minDistance(10)         // activate after ~10px in any direction
+  .minDistance(gestureThresholds.minDistance)         // activate after ~10px in any direction
   .failOffsetX([-12, 12])  // ignore horizontal swipes (so month-swipe wins)
   .onUpdate((e) => { /* track translateY for nice animation */ })
   .onEnd((e) => {
-    if (e.translationY > 60) { console.log('somebody swiped down'); setSelected(null); }
-    if (e.translationY < -60) { console.log('somebody swiped up'); setSelected(null); }
+    if (e.translationY > gestureThresholds.dismissDistance) { console.log('somebody swiped down'); clearSelection(); }
+    if (e.translationY < -gestureThresholds.dismissDistance) { console.log('somebody swiped up'); clearSelection(); }
     
   });
 
@@ -242,9 +126,7 @@ const staticMarks = {
       <SafeAreaView style={styles.container} edges={['top']}>
         <Calendar 
           enableSwipeMonths 
-          onDayPress={({ dateString, year, month, day }) =>
-            setSelected({ key: dateString, year, month, day })
-          }
+          onDayPress={handleDayPress}
           markingType={'custom'}
           markedDates={marks}
           style={styles.calendar}
@@ -253,9 +135,7 @@ const staticMarks = {
               date={date} 
               state={state} 
               marking={marking}
-              onPress={({ dateString, year, month, day }) =>
-                setSelected({ key: dateString, year, month, day })
-              }
+              onPress={handleDayPress}
               onLongPress={handleLongPress}
             />
           )}
@@ -286,7 +166,7 @@ const staticMarks = {
             {/* dismiss button */}
              <Pressable onPress={() => {
               console.log('hi pressed X')
-              setSelected(null)}
+              clearSelection()}
             } style={styles.dismissBtn}>
               <Text style={styles.dismissText}>×</Text>
             </Pressable>
@@ -305,14 +185,14 @@ const staticMarks = {
           visible={modalVisible}
           animationType="slide"
           presentationStyle="pageSheet"
-          onRequestClose={() => setModalVisible(false)}
+          onRequestClose={closeModal}
         >
           <SafeAreaView style={styles.modalContainer}>
             {/* Header with back and close buttons */}
             <View style={styles.modalHeader}>
               <Pressable 
                 style={styles.modalBackButton}
-                onPress={() => setModalVisible(false)}
+                onPress={closeModal}
               >
                 <Text style={styles.modalBackText}>‹</Text>
               </Pressable>
@@ -323,7 +203,7 @@ const staticMarks = {
               
               <Pressable 
                 style={styles.modalCloseButton}
-                onPress={() => setModalVisible(false)}
+                onPress={closeModal}
               >
                 <Text style={styles.modalCloseText}>✕</Text>
               </Pressable>
@@ -336,11 +216,8 @@ const staticMarks = {
                 subtitle="The Daily Check-In"
                 expanded={cards.basics.expanded}
                 pinOpen={cards.basics.pinOpen}
-                onToggle={() => {
-                  if (cards.basics.pinOpen) return;
-                  setCards({ ...cards, basics: { ...cards.basics, expanded: !cards.basics.expanded } });
-                }}
-                onTogglePin={(value) => setCards({ ...cards, basics: { ...cards.basics, pinOpen: value, expanded: value ? true : cards.basics.expanded } })}
+                onToggle={() => handleCardToggle('basics')}
+                onTogglePin={(value) => togglePinOpen('basics', value)}
               >
                 <Text style={styles.sectionText}>Add basic daily entries like flow, energy, mood, notes.</Text>
               </CollapsibleCard>
@@ -350,11 +227,8 @@ const staticMarks = {
                 subtitle="Body & Wellness"
                 expanded={cards.symptoms.expanded}
                 pinOpen={cards.symptoms.pinOpen}
-                onToggle={() => {
-                  if (cards.symptoms.pinOpen) return;
-                  setCards({ ...cards, symptoms: { ...cards.symptoms, expanded: !cards.symptoms.expanded } });
-                }}
-                onTogglePin={(value) => setCards({ ...cards, symptoms: { ...cards.symptoms, pinOpen: value, expanded: value ? true : cards.symptoms.expanded } })}
+                onToggle={() => handleCardToggle('symptoms')}
+                onTogglePin={(value) => togglePinOpen('symptoms', value)}
               >
                 <Text style={styles.sectionText}>Track cramps, headaches, fatigue, GI issues, etc.</Text>
               </CollapsibleCard>
@@ -364,11 +238,8 @@ const staticMarks = {
                 subtitle="Detailed Log"
                 expanded={cards.intimacy.expanded}
                 pinOpen={cards.intimacy.pinOpen}
-                onToggle={() => {
-                  if (cards.intimacy.pinOpen) return;
-                  setCards({ ...cards, intimacy: { ...cards.intimacy, expanded: !cards.intimacy.expanded } });
-                }}
-                onTogglePin={(value) => setCards({ ...cards, intimacy: { ...cards.intimacy, pinOpen: value, expanded: value ? true : cards.intimacy.expanded } })}
+                onToggle={() => handleCardToggle('intimacy')}
+                onTogglePin={(value) => togglePinOpen('intimacy', value)}
               >
                 <Text style={styles.sectionText}>Record intimacy details and relevant context.</Text>
               </CollapsibleCard>
@@ -378,11 +249,8 @@ const staticMarks = {
                 subtitle="Markers & Tracking"
                 expanded={cards.fertility.expanded}
                 pinOpen={cards.fertility.pinOpen}
-                onToggle={() => {
-                  if (cards.fertility.pinOpen) return;
-                  setCards({ ...cards, fertility: { ...cards.fertility, expanded: !cards.fertility.expanded } });
-                }}
-                onTogglePin={(value) => setCards({ ...cards, fertility: { ...cards.fertility, pinOpen: value, expanded: value ? true : cards.fertility.expanded } })}
+                onToggle={() => handleCardToggle('fertility')}
+                onTogglePin={(value) => togglePinOpen('fertility', value)}
               >
                 <Text style={styles.sectionText}>Capture BBT, LH tests, cervical fluid, and more.</Text>
               </CollapsibleCard>
@@ -396,7 +264,7 @@ const staticMarks = {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: colors.background },
   
   // Custom Day Component Styles
   dayContainer: {
@@ -405,7 +273,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     borderStyle: 'solid',
     borderRadius: 5,
     marginTop: -14,
@@ -414,18 +282,18 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 16,
-    color: '#2d4150',
-    fontWeight: '300',
+    color: colors.textPrimary,
+    fontWeight: typography.weights.light,
   },
   selectedDay: {
     borderWidth: 1,
-    borderColor: '#2c7be5',
-    borderRadius: 5,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.sm,
     backgroundColor: 'transparent',
   },
   selectedDayText: {
-    color: '#2c7be5',
-    fontWeight: 'bold',
+    color: colors.primary,
+    fontWeight: typography.weights.bold,
   },
   
   // Dots Styles
@@ -450,18 +318,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   moreDotsText: {
-    fontSize: 8,
-    color: '#666',
-    marginLeft: 2,
+    fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
+    marginLeft: spacing.xs,
   },
   
   // calendar: { flex: 1 },
   card: {
-    margin: 16,
+    margin: spacing.lg,
     marginTop: 80,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.background,
     // iOS shadow
     shadowColor: '#000',
     shadowOpacity: 0.08,
