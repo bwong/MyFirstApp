@@ -1,19 +1,24 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 /**
  * Custom hook for managing form state including collapsible card states
+ * State persists across modal sessions until explicitly reset
  */
 export function useFormState() {
-  // Initial state for collapsible cards
-  const [cards, setCards] = useState({
+  // Create initial state that persists across re-renders
+  const initialState = useMemo(() => ({
     basics: { expanded: true, pinOpen: false },
     symptoms: { expanded: false, pinOpen: false },
     intimacy: { expanded: false, pinOpen: false },
     fertility: { expanded: false, pinOpen: false },
-  });
+  }), []);
+
+  // Initial state for collapsible cards - this will persist across modal sessions
+  const [cards, setCards] = useState(initialState);
+
 
   // Toggle card expansion
-  const toggleCard = (cardKey) => {
+  const toggleCard = useCallback((cardKey) => {
     setCards(prevCards => ({
       ...prevCards,
       [cardKey]: {
@@ -21,10 +26,10 @@ export function useFormState() {
         expanded: !prevCards[cardKey].expanded,
       },
     }));
-  };
+  }, []);
 
   // Toggle pin open state (when pinned, card stays expanded)
-  const togglePinOpen = (cardKey, value) => {
+  const togglePinOpen = useCallback((cardKey, value) => {
     setCards(prevCards => ({
       ...prevCards,
       [cardKey]: {
@@ -33,28 +38,31 @@ export function useFormState() {
         expanded: value ? true : prevCards[cardKey].expanded,
       },
     }));
-  };
+  }, []);
 
   // Handle card toggle with pin check
-  const handleCardToggle = (cardKey) => {
-    const card = cards[cardKey];
-    if (card.pinOpen) return; // Don't toggle if pinned open
-    
-    toggleCard(cardKey);
-  };
+  const handleCardToggle = useCallback((cardKey) => {
+    setCards(prevCards => {
+      const card = prevCards[cardKey];
+      if (card.pinOpen) return prevCards; // Don't toggle if pinned open
+      
+      return {
+        ...prevCards,
+        [cardKey]: {
+          ...card,
+          expanded: !card.expanded,
+        },
+      };
+    });
+  }, []);
 
   // Reset all cards to default state
-  const resetCards = () => {
-    setCards({
-      basics: { expanded: true, pinOpen: false },
-      symptoms: { expanded: false, pinOpen: false },
-      intimacy: { expanded: false, pinOpen: false },
-      fertility: { expanded: false, pinOpen: false },
-    });
-  };
+  const resetCards = useCallback(() => {
+    setCards(initialState);
+  }, [initialState]);
 
   // Expand all cards
-  const expandAllCards = () => {
+  const expandAllCards = useCallback(() => {
     setCards(prevCards => {
       const newCards = {};
       Object.keys(prevCards).forEach(key => {
@@ -62,10 +70,10 @@ export function useFormState() {
       });
       return newCards;
     });
-  };
+  }, []);
 
   // Collapse all cards
-  const collapseAllCards = () => {
+  const collapseAllCards = useCallback(() => {
     setCards(prevCards => {
       const newCards = {};
       Object.keys(prevCards).forEach(key => {
@@ -73,7 +81,7 @@ export function useFormState() {
       });
       return newCards;
     });
-  };
+  }, []);
 
   return {
     cards,
