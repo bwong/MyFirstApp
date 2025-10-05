@@ -1,14 +1,48 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight } from 'lucide-react-native';
 import { settingsStyles } from './SettingsStyles';
+import { DataEntryPreferencesScreen } from './DataEntryPreferencesScreen';
 
 /**
  * Settings Modal Component
  * Displays app settings and configuration options in a modal
  */
-export function SettingsScreen({ visible, onClose }) {
+export function SettingsScreen({ 
+  visible, 
+  onClose, 
+  onDataEntryPreferencesPress,
+  showDataEntryPreferences = false,
+  cardSettings,
+  onToggleCard,
+  onMoveCardUp,
+  onMoveCardDown,
+  onResetToDefaults,
+  onBackToSettings
+}) {
+  // Show Data Entry Preferences screen if requested
+  if (showDataEntryPreferences) {
+    return (
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={onClose}
+      >
+        <DataEntryPreferencesScreen
+          visible={true}
+          onClose={onBackToSettings}
+          cardSettings={cardSettings}
+          onToggleCard={onToggleCard}
+          onMoveCardUp={onMoveCardUp}
+          onMoveCardDown={onMoveCardDown}
+          onResetToDefaults={onResetToDefaults}
+        />
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       visible={visible}
@@ -109,6 +143,27 @@ export function SettingsScreen({ visible, onClose }) {
             </View>
             <Text style={settingsStyles.comingSoon}>Coming Soon</Text>
           </View>
+        </View>
+
+        {/* Data Entry Settings */}
+        <View style={settingsStyles.section}>
+          <Text style={settingsStyles.sectionTitle}>Data Entry</Text>
+          
+          <Pressable 
+            style={settingsStyles.navigationItem}
+            onPress={onDataEntryPreferencesPress}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={settingsStyles.settingLabel}>Data Entry Preferences</Text>
+              <Text style={settingsStyles.settingDescription}>
+                Customize which cards appear in the data entry form
+              </Text>
+            </View>
+            <ChevronRight 
+              size={20}
+              color={settingsStyles.comingSoon.color}
+            />
+          </Pressable>
         </View>
       </ScrollView>
       </SafeAreaView>

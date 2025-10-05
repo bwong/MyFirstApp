@@ -15,6 +15,7 @@ import { useCalendarState } from './src/hooks/useCalendarState';
 import { useModalState } from './src/hooks/useModalState';
 import { useFormState } from './src/hooks/useFormState';
 import { useNavigationState } from './src/hooks/useNavigationState';
+import { useSettingsState } from './src/hooks/useSettingsState';
 
 // Import calendar components
 import { CalendarView } from './src/components/Calendar/CalendarView';
@@ -34,7 +35,8 @@ export default function App() {
   const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState();
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
-  const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal } = useNavigationState();
+  const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal, dataEntryPreferencesVisible, openDataEntryPreferences, closeDataEntryPreferences } = useNavigationState();
+  const { cardSettings, toggleCardVisibility, moveCardUp, moveCardDown, resetToDefaults } = useSettingsState();
 
   const handleLongPress = ({ dateString, year, month, day }) => {
     openModal({ dateString, year, month, day });
@@ -127,13 +129,23 @@ export default function App() {
               cards={cards}
               onCardToggle={handleCardToggle}
               onTogglePin={togglePinOpen}
+              cardSettings={cardSettings}
             />
 
             {/* Settings Modal */}
             <SettingsScreen
               visible={settingsModalVisible}
               onClose={closeSettingsModal}
+              onDataEntryPreferencesPress={openDataEntryPreferences}
+              showDataEntryPreferences={dataEntryPreferencesVisible}
+              cardSettings={cardSettings}
+              onToggleCard={toggleCardVisibility}
+              onMoveCardUp={moveCardUp}
+              onMoveCardDown={moveCardDown}
+              onResetToDefaults={resetToDefaults}
+              onBackToSettings={closeDataEntryPreferences}
             />
+
 
             {/* Date Picker Modal */}
             <DatePickerModal

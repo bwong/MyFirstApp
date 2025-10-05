@@ -16,45 +16,39 @@ export function DateModal({
   onClose, 
   cards, 
   onCardToggle, 
-  onTogglePin 
+  onTogglePin,
+  cardSettings 
 }) {
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={modalStyles.modalContainer}>
-        {/* Header with back and close buttons */}
-        <View style={modalStyles.modalHeader}>
-          <Pressable 
-            style={modalStyles.modalBackButton}
-            onPress={onClose}
-          >
-            <ArrowLeft 
-              size={24}
-              color={modalStyles.modalBackText.color}
-            />
-          </Pressable>
-          
-          <Text style={modalStyles.modalTitle}>
-            {date ? formatLocalCivilDate(date) : 'Date Details'}
-          </Text>
-          
-          <Pressable 
-            style={modalStyles.modalCloseButton}
-            onPress={onClose}
-          >
-            <SaveAll 
-              size={24}
-              color={modalStyles.modalCloseText.color}
-            />
-          </Pressable>
-        </View>
+  // Define card information
+  const cardInfo = {
+    basics: {
+      title: 'Cycle Basics',
+      subtitle: 'The Daily Check-In',
+      description: 'Add basic daily entries like flow, energy, mood, notes.'
+    },
+    symptoms: {
+      title: 'Physical Symptoms',
+      subtitle: 'Body & Wellness',
+      description: 'Track cramps, headaches, fatigue, GI issues, etc.'
+    },
+    intimacy: {
+      title: 'Intimacy',
+      subtitle: 'Detailed Log',
+      description: 'Record intimacy details and relevant context.'
+    },
+    fertility: {
+      title: 'Fertility Data',
+      subtitle: 'Markers & Tracking',
+      description: 'Capture BBT, LH tests, cervical fluid, and more.'
+    }
+  };
 
-        {/* Modal Content - Single Scrolling Form with Collapsible Cards */}
-        <ScrollView style={modalStyles.modalContent} contentContainerStyle={modalStyles.modalContentScroll}>
+  // Render cards based on settings
+  const renderCards = () => {
+    if (!cardSettings) {
+      // Fallback to default rendering if no settings
+      return (
+        <>
           <CollapsibleCard
             title="Cycle Basics"
             subtitle="The Daily Check-In"
@@ -98,6 +92,76 @@ export function DateModal({
           >
             <Text style={modalStyles.sectionText}>Capture BBT, LH tests, cervical fluid, and more.</Text>
           </CollapsibleCard>
+        </>
+      );
+    }
+
+    // Get visible cards in order
+    const visibleCards = Object.entries(cardSettings)
+      .filter(([, settings]) => settings.visible)
+      .sort(([, a], [, b]) => a.order - b.order)
+      .map(([cardId]) => cardId);
+
+    return visibleCards.map(cardId => {
+      const info = cardInfo[cardId];
+      const cardData = cards[cardId];
+      
+      if (!info || !cardData) return null;
+
+      return (
+        <CollapsibleCard
+          key={cardId}
+          title={info.title}
+          subtitle={info.subtitle}
+          expanded={cardData.expanded}
+          pinOpen={cardData.pinOpen}
+          onToggle={() => onCardToggle(cardId)}
+          onTogglePin={(value) => onTogglePin(cardId, value)}
+        >
+          <Text style={modalStyles.sectionText}>{info.description}</Text>
+        </CollapsibleCard>
+      );
+    });
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={modalStyles.modalContainer}>
+        {/* Header with back and close buttons */}
+        <View style={modalStyles.modalHeader}>
+          <Pressable 
+            style={modalStyles.modalBackButton}
+            onPress={onClose}
+          >
+            <ArrowLeft 
+              size={24}
+              color={modalStyles.modalBackText.color}
+            />
+          </Pressable>
+          
+          <Text style={modalStyles.modalTitle}>
+            {date ? formatLocalCivilDate(date) : 'Date Details'}
+          </Text>
+          
+          <Pressable 
+            style={modalStyles.modalCloseButton}
+            onPress={onClose}
+          >
+            <SaveAll 
+              size={24}
+              color={modalStyles.modalCloseText.color}
+            />
+          </Pressable>
+        </View>
+
+        {/* Modal Content - Single Scrolling Form with Collapsible Cards */}
+        <ScrollView style={modalStyles.modalContent} contentContainerStyle={modalStyles.modalContentScroll}>
+          {renderCards()}
         </ScrollView>
       </SafeAreaView>
     </Modal>

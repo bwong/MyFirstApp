@@ -7,6 +7,7 @@ import { useState, useCallback } from 'react';
 export function useNavigationState() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [datePickerModalVisible, setDatePickerModalVisible] = useState(false);
+  const [dataEntryPreferencesVisible, setDataEntryPreferencesVisible] = useState(false);
 
   // Open settings modal
   const openSettingsModal = useCallback(() => {
@@ -28,6 +29,16 @@ export function useNavigationState() {
     setDatePickerModalVisible(false);
   }, []);
 
+  // Open data entry preferences screen
+  const openDataEntryPreferences = useCallback(() => {
+    setDataEntryPreferencesVisible(true);
+  }, []);
+
+  // Close data entry preferences screen
+  const closeDataEntryPreferences = useCallback(() => {
+    setDataEntryPreferencesVisible(false);
+  }, []);
+
   return {
     settingsModalVisible,
     openSettingsModal,
@@ -35,5 +46,8 @@ export function useNavigationState() {
     datePickerModalVisible,
     openDatePickerModal,
     closeDatePickerModal,
+    dataEntryPreferencesVisible,
+    openDataEntryPreferences,
+    closeDataEntryPreferences,
   };
 }
