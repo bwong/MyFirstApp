@@ -14,6 +14,7 @@ import { colors, spacing, borderRadius, typography, gestureThresholds } from './
 import { useCalendarState } from './src/hooks/useCalendarState';
 import { useModalState } from './src/hooks/useModalState';
 import { useFormState } from './src/hooks/useFormState';
+import { useNavigationState } from './src/hooks/useNavigationState';
 
 // Import calendar components
 import { CalendarView } from './src/components/Calendar/CalendarView';
@@ -21,16 +22,45 @@ import { CalendarView } from './src/components/Calendar/CalendarView';
 // Import modal components
 import { DateModal } from './src/components/Modal/DateModal';
 
+// Import menu and settings components
+import { MenuBar } from './src/components/MenuBar/MenuBar';
+import { SettingsScreen } from './src/components/Settings/SettingsScreen';
+
 
 
 export default function App() {
   // Use custom hooks for state management
-  const { selected, marks, handleDayPress, clearSelection } = useCalendarState();
-  const { modalVisible, modalDate, openModal, closeModal } = useModalState();
+  const { selected, marks, handleDayPress, clearSelection, navigateToCurrentDay } = useCalendarState();
+  const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
+  const { settingsModalVisible, openSettingsModal, closeSettingsModal } = useNavigationState();
 
   const handleLongPress = ({ dateString, year, month, day }) => {
     openModal({ dateString, year, month, day });
+  };
+
+  // Menu bar navigation handlers
+  const handleHomePress = () => {
+    navigateToCurrentDay();
+  };
+
+  const handleAddDataPress = () => {
+    if (selected) {
+      // If a date is selected, open modal for that date
+      openModal({
+        dateString: selected.key,
+        year: selected.year,
+        month: selected.month,
+        day: selected.day,
+      });
+    } else {
+      // If no date selected, open modal for current day
+      openModalForCurrentDay();
+    }
+  };
+
+  const handleSettingsPress = () => {
+    openSettingsModal();
   };
 
   const dismissGesture = Gesture.Pan()
@@ -55,45 +85,60 @@ export default function App() {
       <SafeAreaProvider>
         {/* edges={['top']} keeps it below the notch but lets bottom extend */}
         <SafeAreaView style={styles.container} edges={['top']}>
-          <CalendarView 
-            marks={marks}
-            onDayPress={handleDayPress}
-            onLongPress={handleLongPress}
-            enableSwipeMonths={true}
-          />
-          
-          {/* Bottom card for selected date */}
-          {selected && (
-            <GestureDetector gesture={dismissGesture}>
-              <View style={styles.card}>
-                {/* Dismiss button */}
-                <Pressable 
-                  onPress={() => {
-                    console.log('hi pressed X');
-                    clearSelection();
-                  }} 
-                  style={styles.dismissBtn}
-                >
-                  <Text style={styles.dismissText}>×</Text>
-                </Pressable>
+          <View style={styles.contentWrapper}>
+            <CalendarView 
+              marks={marks}
+              onDayPress={handleDayPress}
+              onLongPress={handleLongPress}
+              enableSwipeMonths={true}
+            />
+            
+            {/* Bottom card for selected date */}
+            {selected && (
+              <GestureDetector gesture={dismissGesture}>
+                <View style={styles.card}>
+                  {/* Dismiss button */}
+                  <Pressable 
+                    onPress={() => {
+                      console.log('hi pressed X');
+                      clearSelection();
+                    }} 
+                    style={styles.dismissBtn}
+                  >
+                    <Text style={styles.dismissText}>×</Text>
+                  </Pressable>
 
-                <Text style={styles.cardTitle}>Selected date</Text>
-                <Text style={styles.cardText}>
-                  hello, the data for the selected day is{' '}
-                  {formatLocalCivilDate(selected)}
-                </Text>
-              </View>
-            </GestureDetector>
-          )}
+                  <Text style={styles.cardTitle}>Selected date</Text>
+                  <Text style={styles.cardText}>
+                    hello, the data for the selected day is{' '}
+                    {formatLocalCivilDate(selected)}
+                  </Text>
+                </View>
+              </GestureDetector>
+            )}
 
-          {/* Long Press Modal */}
-          <DateModal
-            visible={modalVisible}
-            date={modalDate}
-            onClose={closeModal}
-            cards={cards}
-            onCardToggle={handleCardToggle}
-            onTogglePin={togglePinOpen}
+            {/* Long Press Modal */}
+            <DateModal
+              visible={modalVisible}
+              date={modalDate}
+              onClose={closeModal}
+              cards={cards}
+              onCardToggle={handleCardToggle}
+              onTogglePin={togglePinOpen}
+            />
+
+            {/* Settings Modal */}
+            <SettingsScreen
+              visible={settingsModalVisible}
+              onClose={closeSettingsModal}
+            />
+          </View>
+
+          {/* Menu Bar */}
+          <MenuBar
+            onHomePress={handleHomePress}
+            onAddDataPress={handleAddDataPress}
+            onSettingsPress={handleSettingsPress}
           />
         </SafeAreaView>
       </SafeAreaProvider>
@@ -105,6 +150,10 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: colors.background 
+  },
+  contentWrapper: {
+    flex: 1,
+    paddingBottom: 100, // Space for the menu bar with extra iOS home indicator clearance
   },
   card: {
     margin: spacing.lg,

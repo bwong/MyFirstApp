@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, SaveAll } from 'lucide-react-native';
 import { CollapsibleCard } from './CollapsibleCard';
 import { modalStyles } from './ModalStyles';
 import { formatLocalCivilDate } from '../../utils/dateUtils';
@@ -31,7 +32,10 @@ export function DateModal({
             style={modalStyles.modalBackButton}
             onPress={onClose}
           >
-            <Text style={modalStyles.modalBackText}>‹</Text>
+            <ArrowLeft 
+              size={24}
+              color={modalStyles.modalBackText.color}
+            />
           </Pressable>
           
           <Text style={modalStyles.modalTitle}>
@@ -42,7 +46,10 @@ export function DateModal({
             style={modalStyles.modalCloseButton}
             onPress={onClose}
           >
-            <Text style={modalStyles.modalCloseText}>✕</Text>
+            <SaveAll 
+              size={24}
+              color={modalStyles.modalCloseText.color}
+            />
           </Pressable>
         </View>
 

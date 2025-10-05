@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { createDateString } from '../utils/dateUtils';
 
 /**
  * Custom hook for managing modal state including visibility and selected date
@@ -24,12 +25,29 @@ export function useModalState() {
     setModalVisible(!modalVisible);
   }, [modalVisible]);
 
+  // Open modal for current day (today)
+  const openModalForCurrentDay = useCallback(() => {
+    const today = new Date();
+    const currentDate = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+      day: today.getDate(),
+      dateString: createDateString({
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate(),
+      }),
+    };
+    openModal(currentDate);
+  }, [openModal]);
+
   return {
     modalVisible,
     modalDate,
     openModal,
     closeModal,
     toggleModal,
+    openModalForCurrentDay,
     setModalVisible,
     setModalDate,
   };

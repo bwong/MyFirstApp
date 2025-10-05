@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { createDateString } from '../utils/dateUtils';
 
 /**
  * Custom hook for managing calendar state including selected dates and marks
@@ -112,9 +113,25 @@ export function useCalendarState() {
     setSelected({ key: dateString, year, month, day });
   };
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     setSelected(null);
-  };
+  }, []);
+
+  // Navigate to current day (today)
+  const navigateToCurrentDay = useCallback(() => {
+    const today = new Date();
+    const currentDate = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+      day: today.getDate(),
+      key: createDateString({
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate(),
+      }),
+    };
+    setSelected(currentDate);
+  }, []);
 
   return {
     selected,
@@ -122,6 +139,7 @@ export function useCalendarState() {
     staticMarks,
     handleDayPress,
     clearSelection,
+    navigateToCurrentDay,
     setSelected,
   };
 }
