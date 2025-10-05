@@ -6,7 +6,18 @@ import { createDateString } from '../utils/dateUtils';
  */
 export function useCalendarState() {
   const [selected, setSelected] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(null); // Track current calendar month
+  
+  // Initialize currentMonth with today's date
+  const getCurrentMonthString = () => {
+    const today = new Date();
+    return createDateString({
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: 1, // First day of the month
+    });
+  };
+  
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonthString()); // Track current calendar month
 
   // Static marks configuration - this could be moved to a separate config file later
   const staticMarks = {

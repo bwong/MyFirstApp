@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'react-native-calendars';
 import { CustomDayComponent } from './CustomDayComponent';
 import { calendarStyles } from './CalendarStyles';
@@ -15,16 +15,39 @@ export function CalendarView({
   enableSwipeMonths = true,
   current = null
 }) {
-  // Ensure current is a valid date string or undefined
-  const validCurrent = current && typeof current === 'string' && current.length > 0 ? current : undefined;
+  // Internal state to track the current month for navigation
+  // Initialize with current prop or today's date
+  const getInitialMonth = () => {
+    if (current && typeof current === 'string' && current.length > 0) {
+      return current;
+    }
+    // Fallback to today's date
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+  };
+  
+  const [currentMonth, setCurrentMonth] = useState(getInitialMonth());
+  
+  // Update internal state when current prop changes
+  useEffect(() => {
+    if (current && typeof current === 'string' && current.length > 0) {
+      console.log('CalendarView: Updating currentMonth to:', current);
+      setCurrentMonth(current);
+    }
+  }, [current]);
+  
+  // Debug logging (can be removed after testing)
+  console.log('CalendarView - current prop:', current);
+  console.log('CalendarView - currentMonth state:', currentMonth);
   
   return (
     <Calendar 
+      key={currentMonth || 'default'} // Force re-render when month changes
       enableSwipeMonths={enableSwipeMonths}
       onDayPress={onDayPress}
       markingType={'custom'}
       markedDates={marks}
-      current={validCurrent}
+      current={currentMonth}
       style={calendarStyles.calendar}
       dayComponent={({ date, state, marking }) => (
         <CustomDayComponent 
