@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react';
  */
 export function useNavigationState() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [datePickerModalVisible, setDatePickerModalVisible] = useState(false);
 
   // Open settings modal
   const openSettingsModal = useCallback(() => {
@@ -17,9 +18,22 @@ export function useNavigationState() {
     setSettingsModalVisible(false);
   }, []);
 
+  // Open date picker modal
+  const openDatePickerModal = useCallback(() => {
+    setDatePickerModalVisible(true);
+  }, []);
+
+  // Close date picker modal
+  const closeDatePickerModal = useCallback(() => {
+    setDatePickerModalVisible(false);
+  }, []);
+
   return {
     settingsModalVisible,
     openSettingsModal,
     closeSettingsModal,
+    datePickerModalVisible,
+    openDatePickerModal,
+    closeDatePickerModal,
   };
 }

@@ -8,6 +8,9 @@
  * @returns {string} Formatted date string (e.g., "Mon, Sep 22, 2025")
  */
 export function formatLocalCivilDate({ year, month, day }) {
+  if (year === undefined || month === undefined || day === undefined) {
+    return '';
+  }
   // Construct local midnight; no UTC conversion → no off-by-one.
   const d = new Date(year, month - 1, day);
   return new Intl.DateTimeFormat(undefined, {
@@ -25,6 +28,12 @@ export function formatLocalCivilDate({ year, month, day }) {
  * @returns {string} Date string in YYYY-MM-DD format
  */
 export function createDateString({ year, month, day }) {
+  if (year === undefined || month === undefined || day === undefined) {
+    return '';
+  }
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    return '';
+  }
   const paddedMonth = String(month).padStart(2, '0');
   const paddedDay = String(day).padStart(2, '0');
   return `${year}-${paddedMonth}-${paddedDay}`;

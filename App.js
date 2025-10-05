@@ -25,15 +25,16 @@ import { DateModal } from './src/components/Modal/DateModal';
 // Import menu and settings components
 import { MenuBar } from './src/components/MenuBar/MenuBar';
 import { SettingsScreen } from './src/components/Settings/SettingsScreen';
+import { DatePickerModal } from './src/components/DatePicker/DatePickerModal';
 
 
 
 export default function App() {
   // Use custom hooks for state management
-  const { selected, marks, handleDayPress, clearSelection, navigateToCurrentDay } = useCalendarState();
+  const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState();
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
-  const { settingsModalVisible, openSettingsModal, closeSettingsModal } = useNavigationState();
+  const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal } = useNavigationState();
 
   const handleLongPress = ({ dateString, year, month, day }) => {
     openModal({ dateString, year, month, day });
@@ -41,7 +42,7 @@ export default function App() {
 
   // Menu bar navigation handlers
   const handleHomePress = () => {
-    navigateToCurrentDay();
+    openDatePickerModal();
   };
 
   const handleAddDataPress = () => {
@@ -88,6 +89,7 @@ export default function App() {
           <View style={styles.contentWrapper}>
             <CalendarView 
               marks={marks}
+              current={currentMonth}
               onDayPress={handleDayPress}
               onLongPress={handleLongPress}
               enableSwipeMonths={true}
@@ -131,6 +133,13 @@ export default function App() {
             <SettingsScreen
               visible={settingsModalVisible}
               onClose={closeSettingsModal}
+            />
+
+            {/* Date Picker Modal */}
+            <DatePickerModal
+              visible={datePickerModalVisible}
+              onClose={closeDatePickerModal}
+              onDateSelected={navigateToDate}
             />
           </View>
 

@@ -6,6 +6,7 @@ import { createDateString } from '../utils/dateUtils';
  */
 export function useCalendarState() {
   const [selected, setSelected] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(null); // Track current calendar month
 
   // Static marks configuration - this could be moved to a separate config file later
   const staticMarks = {
@@ -133,13 +134,34 @@ export function useCalendarState() {
     setSelected(currentDate);
   }, []);
 
+  // Navigate to a specific date
+  const navigateToDate = useCallback(({ year, month, day }) => {
+    if (!year || !month || !day) return;
+    
+    const dateObj = {
+      year,
+      month,
+      day,
+      key: createDateString({ year, month, day }),
+    };
+    setSelected(dateObj);
+    
+    // Also navigate the calendar to show the selected month
+    const monthString = createDateString({ year, month, day: 1 });
+    if (monthString) {
+      setCurrentMonth(monthString);
+    }
+  }, []);
+
   return {
     selected,
     marks,
     staticMarks,
+    currentMonth,
     handleDayPress,
     clearSelection,
     navigateToCurrentDay,
+    navigateToDate,
     setSelected,
   };
 }

@@ -1,11 +1,11 @@
-# Lucide Icons Installation Guide
+# Lucide Icons & Date Picker Installation Guide
 
 ## Required Packages
 
-To use the new Lucide icons in your menu bar, you need to install these packages:
+To use the new Lucide icons and date picker functionality, you need to install these packages:
 
 ```bash
-npm install lucide-react-native react-native-svg
+npm install lucide-react-native react-native-svg @react-native-community/datetimepicker
 ```
 
 ## iOS Setup (if needed)
@@ -18,11 +18,18 @@ cd ios && pod install
 
 ## What's Changed
 
+### Icons
 The MenuBar component now uses professional Lucide icons instead of emojis:
 
-- **Home**: Calendar-days icon (represents calendar/home)
+- **Home**: Calendar-days icon (opens date picker modal)
 - **Add Data**: Circle-plus icon (clean, minimal design)
 - **Settings**: Modern gear icon
+
+### Date Picker Modal
+- **Home Button**: Now opens a date picker modal to jump to any date
+- **Native Date Picker**: Uses platform-specific date picker for best UX
+- **Modal Design**: Consistent with other modals (Settings, Data Entry)
+- **Date Range**: No restrictions - can select past, present, or future dates
 
 ## Benefits
 
@@ -33,5 +40,7 @@ The MenuBar component now uses professional Lucide icons instead of emojis:
 - ✅ Better visual hierarchy
 - ✅ Icon-only design (cleaner, more space-efficient)
 - ✅ Full accessibility support with descriptive labels
+- ✅ Quick date navigation with native date picker
+- ✅ Consistent modal design across all features
 
 The icons are now properly integrated and will display beautifully in your menu bar!

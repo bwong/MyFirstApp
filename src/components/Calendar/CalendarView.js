@@ -12,14 +12,19 @@ export function CalendarView({
   marks, 
   onDayPress, 
   onLongPress,
-  enableSwipeMonths = true 
+  enableSwipeMonths = true,
+  current = null
 }) {
+  // Ensure current is a valid date string or undefined
+  const validCurrent = current && typeof current === 'string' && current.length > 0 ? current : undefined;
+  
   return (
     <Calendar 
       enableSwipeMonths={enableSwipeMonths}
       onDayPress={onDayPress}
       markingType={'custom'}
       markedDates={marks}
+      current={validCurrent}
       style={calendarStyles.calendar}
       dayComponent={({ date, state, marking }) => (
         <CustomDayComponent 
