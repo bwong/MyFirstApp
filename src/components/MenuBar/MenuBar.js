@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { CalendarDays, CirclePlus, Settings } from 'lucide-react-native';
+import { CalendarSearch, CirclePlus, Settings } from 'lucide-react-native';
 import { menuBarStyles } from './MenuBarStyles';
 import { colors } from '../../utils/constants';
 
@@ -16,18 +16,18 @@ export function MenuBar({
   return (
     <View style={menuBarStyles.menuBar}>
       {/* Home Button */}
-      <Pressable 
-        style={menuBarStyles.menuItem}
-        onPress={onHomePress}
-        accessibilityLabel="Home - Navigate to current day"
-        accessibilityRole="button"
-      >
-        <CalendarDays 
-          size={24}
-          color={colors.textSecondary}
-          style={menuBarStyles.menuIcon}
-        />
-      </Pressable>
+              <Pressable 
+                style={menuBarStyles.menuItem}
+                onPress={onHomePress}
+                accessibilityLabel="Home - Navigate to current day"
+                accessibilityRole="button"
+              >
+                <CalendarSearch 
+                  size={24}
+                  color={colors.textSecondary}
+                  style={menuBarStyles.menuIcon}
+                />
+              </Pressable>
 
       {/* Add Data Button */}
       <Pressable 

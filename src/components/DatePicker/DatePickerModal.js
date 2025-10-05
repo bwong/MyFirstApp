@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Modal, View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
@@ -12,6 +12,25 @@ import { formatLocalCivilDate } from '../../utils/dateUtils';
  */
 export function DatePickerModal({ visible, onClose, onDateSelected }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Reset to current date whenever modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      setSelectedDate(new Date());
+    }
+  }, [visible]);
+
+  const handleGoToToday = useCallback(() => {
+    const today = new Date();
+    const dateObj = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1, // getMonth() returns 0-11, we need 1-12
+      day: today.getDate(),
+    };
+    
+    onDateSelected(dateObj);
+    onClose();
+  }, [onDateSelected, onClose]);
 
   const handleDateChange = (event, date) => {
     if (date) {
@@ -80,13 +99,24 @@ export function DatePickerModal({ visible, onClose, onDateSelected }) {
             />
           </View>
 
-          {/* Go to Date Button */}
-          <Pressable 
-            style={datePickerModalStyles.actionButton}
-            onPress={handleGoToDate}
-          >
-            <Text style={datePickerModalStyles.actionButtonText}>Go to Date</Text>
-          </Pressable>
+                  {/* Action Buttons */}
+                  <View style={datePickerModalStyles.buttonContainer}>
+                    {/* Go to Today Button (Outlined) */}
+                    <Pressable 
+                      style={datePickerModalStyles.outlinedButton}
+                      onPress={handleGoToToday}
+                    >
+                      <Text style={datePickerModalStyles.outlinedButtonText}>Go to Today</Text>
+                    </Pressable>
+
+                    {/* Go to Date Button (Primary) */}
+                    <Pressable 
+                      style={datePickerModalStyles.actionButton}
+                      onPress={handleGoToDate}
+                    >
+                      <Text style={datePickerModalStyles.actionButtonText}>Go to Date</Text>
+                    </Pressable>
+                  </View>
         </View>
       </SafeAreaView>
     </Modal>

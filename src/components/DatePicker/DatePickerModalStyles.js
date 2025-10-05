@@ -51,7 +51,12 @@ export const datePickerModalStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xxl,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
   actionButton: {
+    flex: 1,
     backgroundColor: colors.primary,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.lg,
@@ -67,6 +72,21 @@ export const datePickerModalStyles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     color: colors.background,
+  },
+  outlinedButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+  },
+  outlinedButtonText: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    color: colors.primary,
   },
   selectedDateText: {
     fontSize: typography.sizes.lg,
