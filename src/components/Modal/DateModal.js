@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, SaveAll } from 'lucide-react-native';
 import { CollapsibleCard } from './CollapsibleCard';
 import { FlowSelector } from './FlowSelector';
+import { IntimacyTracker } from './IntimacyTracker';
 import { modalStyles } from './ModalStyles';
 import { formatLocalCivilDate } from '../../utils/dateUtils';
 
@@ -20,7 +21,9 @@ export function DateModal({
   onTogglePin,
   cardSettings,
   flowValue,
-  onFlowChange
+  onFlowChange,
+  intimacyEntries,
+  onIntimacyEntriesChange
 }) {
   // Define card information
   const cardInfo = {
@@ -83,7 +86,10 @@ export function DateModal({
             onToggle={() => onCardToggle('intimacy')}
             onTogglePin={(value) => onTogglePin('intimacy', value)}
           >
-            <Text style={modalStyles.sectionText}>Record intimacy details and relevant context.</Text>
+            <IntimacyTracker 
+              entries={intimacyEntries} 
+              onEntriesChange={onIntimacyEntriesChange}
+            />
           </CollapsibleCard>
 
           <CollapsibleCard
@@ -127,6 +133,11 @@ export function DateModal({
               <FlowSelector value={flowValue} onChange={onFlowChange} />
               <Text style={modalStyles.sectionText}>{info.description}</Text>
             </>
+          ) : cardId === 'intimacy' ? (
+            <IntimacyTracker 
+              entries={intimacyEntries} 
+              onEntriesChange={onIntimacyEntriesChange}
+            />
           ) : (
             <Text style={modalStyles.sectionText}>{info.description}</Text>
           )}

@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, Pressable, Switch } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '../../utils/constants';
 
 /**
  * Reusable Collapsible Card Component
  * Displays a collapsible section with header, pin toggle, and content area
  */
-export function CollapsibleCard({ title, subtitle, expanded, pinOpen, onToggle, onTogglePin, children }) {
+export function CollapsibleCard({ title, subtitle, expanded, onToggle, children }) {
   return (
     <View style={styles.sectionCard}>
       <Pressable onPress={onToggle} style={styles.sectionHeader}>

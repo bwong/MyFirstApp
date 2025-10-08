@@ -99,27 +99,41 @@ export function useCalendarState(cycleData = {}) {
     // Start with static marks
     const baseMarks = { ...staticMarks };
     
-    // Add flow background colors from cycleData
+    // Add flow background colors and intimacy dots from cycleData
     Object.keys(cycleData).forEach(dateString => {
       const entry = cycleData[dateString];
       const flowValue = entry?.cycle?.flow;
       const flowColor = flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
+      const hasIntimacy = entry?.intimacy?.entries && entry.intimacy.entries.length > 0;
       
+      const existingMark = baseMarks[dateString] || {};
+      
+      // Build the mark object
+      const mark = {
+        ...existingMark,
+      };
+      
+      // Add flow background color if exists
       if (flowColor) {
-        // Add or update mark with flow color
-        const existingMark = baseMarks[dateString] || {};
-        baseMarks[dateString] = {
-          ...existingMark,
-          customStyles: {
-            container: {
-              backgroundColor: flowColor,
-              borderRadius: 0, // No rounded corners for flow background
-            },
-            text: {
-              color: colors.textPrimary,
-            },
+        mark.customStyles = {
+          container: {
+            backgroundColor: flowColor,
+            borderRadius: 0, // No rounded corners for flow background
+          },
+          text: {
+            color: colors.textPrimary,
           },
         };
+      }
+      
+      // Add bright pink dot for intimacy
+      if (hasIntimacy) {
+        mark.marked = true;
+        mark.dotColor = '#FF1493'; // Bright pink (DeepPink)
+      }
+      
+      if (flowColor || hasIntimacy) {
+        baseMarks[dateString] = mark;
       }
     });
     

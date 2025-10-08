@@ -1,14 +1,13 @@
 import 'react-native-gesture-handler'; // (keep this at the very top)
 
 import React from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 // Import utilities
-import { formatLocalCivilDate } from './src/utils/dateUtils';
-import { colors, spacing, borderRadius, typography, gestureThresholds } from './src/utils/constants';
+import { colors, gestureThresholds } from './src/utils/constants';
 
 // Import custom hooks
 import { useCalendarState } from './src/hooks/useCalendarState';
@@ -20,6 +19,7 @@ import { useCycleData } from './src/hooks/useCycleData';
 
 // Import calendar components
 import { CalendarView } from './src/components/Calendar/CalendarView';
+import { SelectedDateSummary } from './src/components/Calendar/SelectedDateSummary';
 
 // Import modal components
 import { DateModal } from './src/components/Modal/DateModal';
@@ -33,7 +33,7 @@ import { DatePickerModal } from './src/components/DatePicker/DatePickerModal';
 
 export default function App() {
   // Use custom hooks for state management
-  const { getFlowForDate, setFlowForDate, cycleData } = useCycleData();
+  const { getFlowForDate, setFlowForDate, getIntimacyForDate, setIntimacyForDate, getDataForDate, cycleData } = useCycleData();
   const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState(cycleData);
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
@@ -42,6 +42,17 @@ export default function App() {
 
   const handleLongPress = ({ dateString, year, month, day }) => {
     openModal({ dateString, year, month, day });
+  };
+
+  const handleEditSelectedDate = () => {
+    if (selected) {
+      openModal({
+        dateString: selected.key,
+        year: selected.year,
+        month: selected.month,
+        day: selected.day,
+      });
+    }
   };
 
   // Menu bar navigation handlers
@@ -102,23 +113,13 @@ export default function App() {
             {/* Bottom card for selected date */}
             {selected && (
               <GestureDetector gesture={dismissGesture}>
-                <View style={styles.card}>
-                  {/* Dismiss button */}
-                  <Pressable 
-                    onPress={() => {
-                      console.log('hi pressed X');
-                      clearSelection();
-                    }} 
-                    style={styles.dismissBtn}
-                  >
-                    <Text style={styles.dismissText}>×</Text>
-                  </Pressable>
-
-                  <Text style={styles.cardTitle}>Selected date</Text>
-                  <Text style={styles.cardText}>
-                    hello, the data for the selected day is{' '}
-                    {formatLocalCivilDate(selected)}
-                  </Text>
+                <View collapsable={false}>
+                  <SelectedDateSummary
+                    date={selected}
+                    cycleData={getDataForDate(selected.key)}
+                    onEdit={handleEditSelectedDate}
+                    onDismiss={clearSelection}
+                  />
                 </View>
               </GestureDetector>
             )}
@@ -134,6 +135,8 @@ export default function App() {
               cardSettings={cardSettings}
               flowValue={modalDate ? getFlowForDate(modalDate.dateString) : 'none'}
               onFlowChange={(value) => modalDate && setFlowForDate(modalDate.dateString, value)}
+              intimacyEntries={modalDate ? getIntimacyForDate(modalDate.dateString) : []}
+              onIntimacyEntriesChange={(entries) => modalDate && setIntimacyForDate(modalDate.dateString, entries)}
             />
 
             {/* Settings Modal */}
@@ -179,44 +182,5 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flex: 1,
     paddingBottom: 100, // Space for the menu bar with extra iOS home indicator clearance
-  },
-  card: {
-    margin: spacing.lg,
-    marginTop: 80,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.background,
-    // iOS shadow
-    shadowColor: colors.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    // Android elevation
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-  },
-  dismissBtn: {
-    position: 'absolute',
-    right: spacing.sm,
-    top: spacing.sm,
-    padding: spacing.xs,
-  },
-  dismissText: {
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    color: colors.textLight,
-  },
-  cardTitle: { 
-    fontSize: typography.sizes.md, 
-    color: colors.textSecondary, 
-    marginBottom: spacing.xs, 
-    textTransform: 'uppercase', 
-    letterSpacing: 0.5 
-  },
-  cardText: { 
-    fontSize: typography.sizes.xl, 
-    fontWeight: typography.weights.semibold, 
-    color: colors.textPrimary 
   },
 });

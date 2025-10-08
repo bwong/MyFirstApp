@@ -131,6 +131,34 @@ export function useCycleData() {
   }, [updateDateData]);
 
   /**
+   * Get intimacy entries for a specific date
+   * @param {string} dateString - Date in YYYY-MM-DD format
+   * @returns {Array} Array of intimacy entries
+   */
+  const getIntimacyForDate = useCallback((dateString) => {
+    if (!dateString) return [];
+    const data = cycleData[dateString];
+    return data?.intimacy?.entries || [];
+  }, [cycleData]);
+
+  /**
+   * Set intimacy entries for a specific date
+   * @param {string} dateString - Date in YYYY-MM-DD format
+   * @param {Array} entries - Array of intimacy entries
+   */
+  const setIntimacyForDate = useCallback((dateString, entries) => {
+    if (!dateString) return;
+
+    // Convert Date objects to ISO strings for storage
+    const serializedEntries = entries.map(entry => ({
+      ...entry,
+      time: entry.time instanceof Date ? entry.time.toISOString() : entry.time,
+    }));
+
+    updateDateData(dateString, 'intimacy', { entries: serializedEntries });
+  }, [updateDateData]);
+
+  /**
    * Clear all data for a specific date
    * @param {string} dateString - Date in YYYY-MM-DD format
    */
@@ -208,6 +236,8 @@ export function useCycleData() {
     getDataForDate,
     getFlowForDate,
     setFlowForDate,
+    getIntimacyForDate,
+    setIntimacyForDate,
     updateDateData,
     clearDataForDate,
     getAllDatesWithData,
