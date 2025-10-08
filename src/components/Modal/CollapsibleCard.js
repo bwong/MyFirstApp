@@ -15,10 +15,6 @@ export function CollapsibleCard({ title, subtitle, expanded, pinOpen, onToggle, 
           {subtitle ? <Text style={styles.sectionSubtitle}>{subtitle}</Text> : null}
         </View>
         <View style={styles.sectionHeaderRight}>
-          <View style={styles.pinRow}>
-            <Text style={styles.pinLabel}>Keep open</Text>
-            <Switch value={pinOpen} onValueChange={onTogglePin} />
-          </View>
           <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
         </View>
       </Pressable>
