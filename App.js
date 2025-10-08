@@ -16,6 +16,7 @@ import { useModalState } from './src/hooks/useModalState';
 import { useFormState } from './src/hooks/useFormState';
 import { useNavigationState } from './src/hooks/useNavigationState';
 import { useSettingsState } from './src/hooks/useSettingsState';
+import { useCycleData } from './src/hooks/useCycleData';
 
 // Import calendar components
 import { CalendarView } from './src/components/Calendar/CalendarView';
@@ -32,7 +33,8 @@ import { DatePickerModal } from './src/components/DatePicker/DatePickerModal';
 
 export default function App() {
   // Use custom hooks for state management
-  const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState();
+  const { getFlowForDate, setFlowForDate, cycleData } = useCycleData();
+  const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState(cycleData);
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
   const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal, dataEntryPreferencesVisible, openDataEntryPreferences, closeDataEntryPreferences } = useNavigationState();
@@ -130,6 +132,8 @@ export default function App() {
               onCardToggle={handleCardToggle}
               onTogglePin={togglePinOpen}
               cardSettings={cardSettings}
+              flowValue={modalDate ? getFlowForDate(modalDate.dateString) : 'none'}
+              onFlowChange={(value) => modalDate && setFlowForDate(modalDate.dateString, value)}
             />
 
             {/* Settings Modal */}

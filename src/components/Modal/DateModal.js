@@ -3,6 +3,7 @@ import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, SaveAll } from 'lucide-react-native';
 import { CollapsibleCard } from './CollapsibleCard';
+import { FlowSelector } from './FlowSelector';
 import { modalStyles } from './ModalStyles';
 import { formatLocalCivilDate } from '../../utils/dateUtils';
 
@@ -17,7 +18,9 @@ export function DateModal({
   cards, 
   onCardToggle, 
   onTogglePin,
-  cardSettings 
+  cardSettings,
+  flowValue,
+  onFlowChange
 }) {
   // Define card information
   const cardInfo = {
@@ -57,6 +60,7 @@ export function DateModal({
             onToggle={() => onCardToggle('basics')}
             onTogglePin={(value) => onTogglePin('basics', value)}
           >
+            <FlowSelector value={flowValue} onChange={onFlowChange} />
             <Text style={modalStyles.sectionText}>Add basic daily entries like flow, energy, mood, notes.</Text>
           </CollapsibleCard>
 
@@ -118,7 +122,14 @@ export function DateModal({
           onToggle={() => onCardToggle(cardId)}
           onTogglePin={(value) => onTogglePin(cardId, value)}
         >
-          <Text style={modalStyles.sectionText}>{info.description}</Text>
+          {cardId === 'basics' ? (
+            <>
+              <FlowSelector value={flowValue} onChange={onFlowChange} />
+              <Text style={modalStyles.sectionText}>{info.description}</Text>
+            </>
+          ) : (
+            <Text style={modalStyles.sectionText}>{info.description}</Text>
+          )}
         </CollapsibleCard>
       );
     });

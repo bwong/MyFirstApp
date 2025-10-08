@@ -1,10 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import { createDateString } from '../utils/dateUtils';
+import { colors, flowColors } from '../utils/constants';
 
 /**
  * Custom hook for managing calendar state including selected dates and marks
  */
-export function useCalendarState() {
+export function useCalendarState(cycleData = {}) {
   const [selected, setSelected] = useState(null);
   
   // Initialize currentMonth with today's date
@@ -93,32 +94,61 @@ export function useCalendarState() {
     },
   };
 
-  // Computed marks with selected date styling
+  // Computed marks with selected date styling and flow colors
   const marks = useMemo(() => {
-    if (!selected) return staticMarks;
-
-    const selKey = selected.key;
-    const existing = staticMarks[selKey] ?? {};
-
-    return {
-      ...staticMarks,
-      [selKey]: {
-        ...existing, // keep any static marking (dots, etc.)
+    // Start with static marks
+    const baseMarks = { ...staticMarks };
+    
+    // Add flow background colors from cycleData
+    Object.keys(cycleData).forEach(dateString => {
+      const entry = cycleData[dateString];
+      const flowValue = entry?.cycle?.flow;
+      const flowColor = flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
+      
+      if (flowColor) {
+        // Add or update mark with flow color
+        const existingMark = baseMarks[dateString] || {};
+        baseMarks[dateString] = {
+          ...existingMark,
+          customStyles: {
+            container: {
+              backgroundColor: flowColor,
+              borderRadius: 0, // No rounded corners for flow background
+            },
+            text: {
+              color: colors.textPrimary,
+            },
+          },
+        };
+      }
+    });
+    
+    // Apply selection outline if a date is selected
+    if (selected) {
+      const selKey = selected.key;
+      const existing = baseMarks[selKey] ?? {};
+      const flowValue = cycleData[selKey]?.cycle?.flow;
+      const flowColor = flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
+      
+      baseMarks[selKey] = {
+        ...existing,
         customStyles: {
           container: {
-            backgroundColor: 'transparent',
+            backgroundColor: flowColor || 'transparent',
             borderWidth: 1,
             borderColor: '#2c7be5',
-            borderRadius: 5,
+            borderRadius: flowColor ? 0 : 5, // No rounded corners if flow color exists
           },
           text: {
             color: '#2c7be5',
             fontWeight: 'bold',
           },
         },
-      },
-    };
-  }, [selected]);
+      };
+    }
+    
+    return baseMarks;
+  }, [selected, cycleData]);
 
   // Calendar event handlers
   const handleDayPress = ({ dateString, year, month, day }) => {

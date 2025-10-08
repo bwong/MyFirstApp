@@ -97,3 +97,12 @@ export const gestureThresholds = {
   swipeDistance: 50,
   dismissDistance: 60,
 };
+
+// Flow colors (matching FlowSelector)
+export const flowColors = {
+  none: null,                    // No background
+  spotting: '#FED7E2',          // Light Pink
+  light: '#FBB6CE',             // Pink
+  medium: '#F687B3',            // Red-Pink
+  heavy: '#D53F8C',             // Deep Red/Pink
+};
