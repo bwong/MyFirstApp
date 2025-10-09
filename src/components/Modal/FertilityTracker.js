@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet, Platform } from 'react-native';
 import { TimePicker } from './TimePicker';
 import { colors, spacing, borderRadius, typography } from '../../utils/constants';
 
@@ -17,12 +17,35 @@ const CERVICAL_FLUID_OPTIONS = [
   { id: 'egg_white', label: 'Egg White' },
 ];
 
-export function FertilityTracker({ data = {}, onChange, temperatureUnit = 'F' }) {
+export function FertilityTracker({ data = {}, onChange, temperatureUnit = 'F', scrollViewRef }) {
+  const supplementInputRef = useRef(null);
+  const notesInputRef = useRef(null);
+  
   /**
    * Update a field in the fertility data
    */
   const updateField = (field, value) => {
     onChange({ ...data, [field]: value });
+  };
+
+  /**
+   * Handle input focus - scroll to make it visible
+   */
+  const handleInputFocus = (inputRef) => {
+    if (scrollViewRef?.current && inputRef?.current) {
+      // Small delay to ensure keyboard is shown
+      setTimeout(() => {
+        inputRef.current?.measureLayout(
+          scrollViewRef.current,
+          (x, y) => {
+            scrollViewRef.current?.scrollTo({
+              y: y - 100, // Offset to show input above keyboard with some padding
+              animated: true,
+            });
+          }
+        );
+      }, 100);
+    }
   };
 
   /**
@@ -187,13 +210,15 @@ export function FertilityTracker({ data = {}, onChange, temperatureUnit = 'F' })
         <Text style={styles.label}>Supplements/Methods</Text>
         
         {/* Tag Input */}
-        <View style={styles.tagInputRow}>
+        <View style={styles.tagInputRow} ref={supplementInputRef}>
           <TextInput
             style={styles.tagInput}
             value={supplementInput}
             onChangeText={setSupplementInput}
             placeholder="Add supplement..."
             placeholderTextColor={colors.textLight}
+            returnKeyType="done"
+            onFocus={() => handleInputFocus(supplementInputRef)}
             onSubmitEditing={() => {
               if (supplementInput.trim()) {
                 handleAddSupplement(supplementInput.trim());
@@ -230,6 +255,22 @@ export function FertilityTracker({ data = {}, onChange, temperatureUnit = 'F' })
             ))}
           </View>
         )}
+      </View>
+
+      {/* Notes Section */}
+      <View style={styles.section} ref={notesInputRef}>
+        <Text style={styles.label}>Notes (optional)</Text>
+        <TextInput
+          style={styles.notesInput}
+          value={data.notes || ''}
+          onChangeText={(text) => updateField('notes', text)}
+          placeholder="Add any notes about fertility tracking..."
+          multiline
+          numberOfLines={3}
+          placeholderTextColor={colors.textLight}
+          textAlignVertical="top"
+          onFocus={() => handleInputFocus(notesInputRef)}
+        />
       </View>
     </View>
   );
@@ -392,6 +433,18 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.background,
     fontWeight: typography.weights.bold,
+  },
+  notesInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    backgroundColor: colors.background,
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
 });
 

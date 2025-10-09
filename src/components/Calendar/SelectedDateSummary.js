@@ -168,6 +168,12 @@ export function SelectedDateSummary({
                     Supplements: {fertilityData.supplements.join(', ')}
                   </Text>
                 )}
+                
+                {fertilityData.notes && fertilityData.notes.trim() !== '' && (
+                  <Text style={styles.entryNotes}>
+                    Note: {fertilityData.notes}
+                  </Text>
+                )}
               </View>
             )}
           </>

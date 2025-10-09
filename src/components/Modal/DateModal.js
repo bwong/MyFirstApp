@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
+import React, { useRef } from 'react';
+import { Modal, View, Text, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, SaveAll } from 'lucide-react-native';
 import { CollapsibleCard } from './CollapsibleCard';
@@ -28,6 +28,8 @@ export function DateModal({
   fertilityData,
   onFertilityChange
 }) {
+  const scrollViewRef = useRef(null);
+  
   // Define card information
   const cardInfo = {
     basics: {
@@ -106,6 +108,7 @@ export function DateModal({
             <FertilityTracker 
               data={fertilityData} 
               onChange={onFertilityChange}
+              scrollViewRef={scrollViewRef}
             />
           </CollapsibleCard>
         </>
@@ -148,6 +151,7 @@ export function DateModal({
             <FertilityTracker 
               data={fertilityData} 
               onChange={onFertilityChange}
+              scrollViewRef={scrollViewRef}
             />
           ) : (
             <Text style={modalStyles.sectionText}>{info.description}</Text>
@@ -193,9 +197,20 @@ export function DateModal({
         </View>
 
         {/* Modal Content - Single Scrolling Form with Collapsible Cards */}
-        <ScrollView style={modalStyles.modalContent} contentContainerStyle={modalStyles.modalContentScroll}>
-          {renderCards()}
-        </ScrollView>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <ScrollView 
+            ref={scrollViewRef}
+            style={modalStyles.modalContent} 
+            contentContainerStyle={modalStyles.modalContentScroll}
+            keyboardShouldPersistTaps="handled"
+          >
+            {renderCards()}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
   );
