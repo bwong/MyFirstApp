@@ -4,10 +4,9 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 // Import utilities
-import { colors, gestureThresholds } from './src/utils/constants';
+import { colors } from './src/utils/constants';
 
 // Import custom hooks
 import { useCalendarState } from './src/hooks/useCalendarState';
@@ -79,23 +78,6 @@ export default function App() {
     openSettingsModal();
   };
 
-  const dismissGesture = Gesture.Pan()
-    .runOnJS(true)
-    .minDistance(gestureThresholds.minDistance)         // activate after ~10px in any direction
-    .failOffsetX([-12, 12])  // ignore horizontal swipes (so month-swipe wins)
-    .onUpdate((e) => { /* track translateY for nice animation */ })
-    .onEnd((e) => {
-      if (e.translationY > gestureThresholds.dismissDistance) { 
-        console.log('somebody swiped down'); 
-        clearSelection(); 
-      }
-      if (e.translationY < -gestureThresholds.dismissDistance) { 
-        console.log('somebody swiped up'); 
-        clearSelection(); 
-      }
-    });
-
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -112,17 +94,13 @@ export default function App() {
             
             {/* Bottom card for selected date */}
             {selected && !settingsLoading && (
-              <GestureDetector gesture={dismissGesture}>
-                <View collapsable={false}>
-                  <SelectedDateSummary
-                    date={selected}
-                    cycleData={getDataForDate(selected.key)}
-                    cardSettings={cardSettings}
-                    onEdit={handleEditSelectedDate}
-                    onDismiss={clearSelection}
-                  />
-                </View>
-              </GestureDetector>
+              <SelectedDateSummary
+                date={selected}
+                cycleData={getDataForDate(selected.key)}
+                cardSettings={cardSettings}
+                onEdit={handleEditSelectedDate}
+                onDismiss={clearSelection}
+              />
             )}
 
             {/* Long Press Modal */}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { SquarePen } from 'lucide-react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { SquarePen, SquareX } from 'lucide-react-native';
 import { colors, spacing, borderRadius, typography } from '../../utils/constants';
 import { formatLocalCivilDate } from '../../utils/dateUtils';
 
@@ -70,21 +70,34 @@ export function SelectedDateSummary({
 
   return (
     <View style={styles.card}>
-      {/* Edit button */}
-      <Pressable 
-        onPress={onEdit} 
-        style={styles.editBtn}
-      >
-        <SquarePen size={20} color={colors.primary} />
-      </Pressable>
+      {/* Action Buttons */}
+      <View style={styles.actionButtons}>
+        <Pressable 
+          onPress={onEdit} 
+          style={styles.actionBtn}
+        >
+          <SquarePen size={20} color={colors.primary} />
+        </Pressable>
+        
+        <Pressable 
+          onPress={onDismiss} 
+          style={styles.actionBtn}
+        >
+          <SquareX size={20} color={colors.textSecondary} />
+        </Pressable>
+      </View>
 
       {/* Date Title */}
       <Text style={styles.dateTitle}>
         {formatLocalCivilDate(date)}
       </Text>
 
-      {/* Data Content */}
-      <View style={styles.content}>
+      {/* Data Content - Scrollable */}
+      <ScrollView 
+        style={styles.contentScroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+      >
         {!hasVisibleData ? (
           <Text style={styles.emptyText}>No data recorded</Text>
         ) : (
@@ -178,15 +191,16 @@ export function SelectedDateSummary({
             )}
           </>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    margin: spacing.lg,
-    marginTop: 80,
+    flex: 1,
+    margin: spacing.md,
+    marginTop: spacing.md,
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.background,
@@ -200,22 +214,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
-  editBtn: {
+  actionButtons: {
     position: 'absolute',
     right: spacing.sm,
     top: spacing.sm,
-    padding: spacing.xs,
+    flexDirection: 'row',
+    gap: spacing.xs,
     zIndex: 1,
+  },
+  actionBtn: {
+    padding: spacing.xs,
   },
   dateTitle: {
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.semibold,
     color: colors.textPrimary,
     marginBottom: spacing.md,
-    paddingRight: 40, // Space for edit button
+    paddingRight: 70, // Space for both buttons
+  },
+  contentScroll: {
+    flex: 1, // Take up available space
   },
   content: {
-    marginTop: spacing.xs,
+    paddingBottom: spacing.md,
   },
   emptyText: {
     fontSize: typography.sizes.md,
