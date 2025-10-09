@@ -34,11 +34,11 @@ import { DatePickerModal } from './src/components/DatePicker/DatePickerModal';
 export default function App() {
   // Use custom hooks for state management
   const { getFlowForDate, setFlowForDate, getIntimacyForDate, setIntimacyForDate, getDataForDate, cycleData } = useCycleData();
-  const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState(cycleData);
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
   const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal, dataEntryPreferencesVisible, openDataEntryPreferences, closeDataEntryPreferences } = useNavigationState();
-  const { cardSettings, toggleCardVisibility, moveCardUp, moveCardDown, resetToDefaults } = useSettingsState();
+  const { cardSettings, toggleCardVisibility, moveCardUp, moveCardDown, resetToDefaults, isLoading: settingsLoading } = useSettingsState();
+  const { selected, marks, currentMonth, handleDayPress, clearSelection, navigateToCurrentDay, navigateToDate } = useCalendarState(cycleData, cardSettings);
 
   const handleLongPress = ({ dateString, year, month, day }) => {
     openModal({ dateString, year, month, day });
@@ -111,12 +111,13 @@ export default function App() {
             />
             
             {/* Bottom card for selected date */}
-            {selected && (
+            {selected && !settingsLoading && (
               <GestureDetector gesture={dismissGesture}>
                 <View collapsable={false}>
                   <SelectedDateSummary
                     date={selected}
                     cycleData={getDataForDate(selected.key)}
+                    cardSettings={cardSettings}
                     onEdit={handleEditSelectedDate}
                     onDismiss={clearSelection}
                   />

@@ -5,7 +5,7 @@ import { colors, flowColors } from '../utils/constants';
 /**
  * Custom hook for managing calendar state including selected dates and marks
  */
-export function useCalendarState(cycleData = {}) {
+export function useCalendarState(cycleData = {}, cardSettings = {}) {
   const [selected, setSelected] = useState(null);
   
   // Initialize currentMonth with today's date
@@ -99,7 +99,11 @@ export function useCalendarState(cycleData = {}) {
     // Start with static marks
     const baseMarks = { ...staticMarks };
     
-    // Add flow background colors and intimacy dots from cycleData
+    // Check card visibility from settings
+    const isCycleVisible = cardSettings?.basics?.visible !== false;
+    const isIntimacyVisible = cardSettings?.intimacy?.visible !== false;
+    
+    // Add flow background colors and intimacy dots from cycleData (respecting visibility)
     Object.keys(cycleData).forEach(dateString => {
       const entry = cycleData[dateString];
       const flowValue = entry?.cycle?.flow;
@@ -113,8 +117,8 @@ export function useCalendarState(cycleData = {}) {
         ...existingMark,
       };
       
-      // Add flow background color if exists
-      if (flowColor) {
+      // Add flow background color if exists AND cycle card is visible
+      if (isCycleVisible && flowColor) {
         mark.customStyles = {
           container: {
             backgroundColor: flowColor,
@@ -126,13 +130,13 @@ export function useCalendarState(cycleData = {}) {
         };
       }
       
-      // Add bright pink dot for intimacy
-      if (hasIntimacy) {
+      // Add purple dot for intimacy if intimacy card is visible
+      if (isIntimacyVisible && hasIntimacy) {
         mark.marked = true;
-        mark.dotColor = '#FF1493'; // Bright pink (DeepPink)
+        mark.dotColor = '#9333EA'; // Purple
       }
       
-      if (flowColor || hasIntimacy) {
+      if ((isCycleVisible && flowColor) || (isIntimacyVisible && hasIntimacy)) {
         baseMarks[dateString] = mark;
       }
     });
@@ -142,7 +146,8 @@ export function useCalendarState(cycleData = {}) {
       const selKey = selected.key;
       const existing = baseMarks[selKey] ?? {};
       const flowValue = cycleData[selKey]?.cycle?.flow;
-      const flowColor = flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
+      // Only show flow color if cycle card is visible
+      const flowColor = isCycleVisible && flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
       
       baseMarks[selKey] = {
         ...existing,
@@ -162,7 +167,7 @@ export function useCalendarState(cycleData = {}) {
     }
     
     return baseMarks;
-  }, [selected, cycleData]);
+  }, [selected, cycleData, cardSettings]);
 
   // Calendar event handlers
   const handleDayPress = ({ dateString, year, month, day }) => {

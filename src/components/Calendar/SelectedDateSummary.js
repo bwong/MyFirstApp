@@ -11,6 +11,7 @@ import { formatLocalCivilDate } from '../../utils/dateUtils';
 export function SelectedDateSummary({ 
   date, 
   cycleData, 
+  cardSettings,
   onEdit, 
   onDismiss 
 }) {
@@ -20,8 +21,14 @@ export function SelectedDateSummary({
   const flowValue = cycleData?.cycle?.flow;
   const intimacyEntries = cycleData?.intimacy?.entries || [];
   
-  // Check if any data exists
-  const hasData = flowValue || intimacyEntries.length > 0;
+  // Check card visibility from settings
+  const isCycleVisible = cardSettings?.basics?.visible !== false; // Default to true if not set
+  const isIntimacyVisible = cardSettings?.intimacy?.visible !== false; // Default to true if not set
+  
+  // Check if any VISIBLE data exists
+  const hasVisibleData = 
+    (isCycleVisible && flowValue) || 
+    (isIntimacyVisible && intimacyEntries.length > 0);
 
   /**
    * Format flow value for display
@@ -74,20 +81,20 @@ export function SelectedDateSummary({
 
       {/* Data Content */}
       <View style={styles.content}>
-        {!hasData ? (
+        {!hasVisibleData ? (
           <Text style={styles.emptyText}>No data recorded</Text>
         ) : (
           <>
-            {/* Flow Section */}
-            {flowValue && flowValue !== 'none' && (
+            {/* Flow Section - Only show if cycle card is visible */}
+            {isCycleVisible && flowValue && flowValue !== 'none' && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Flow</Text>
                 <Text style={styles.sectionText}>{getFlowText()}</Text>
               </View>
             )}
 
-            {/* Intimacy Section */}
-            {intimacyEntries.length > 0 && (
+            {/* Intimacy Section - Only show if intimacy card is visible */}
+            {isIntimacyVisible && intimacyEntries.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>
                   Intimacy ({intimacyEntries.length} {intimacyEntries.length === 1 ? 'entry' : 'entries'})
