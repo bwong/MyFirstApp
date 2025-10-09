@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, ScrollView, StyleSheet, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, Pressable, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { TimePicker } from './TimePicker';
 import { colors, spacing, borderRadius, typography } from '../../utils/constants';
 
 /**
@@ -27,8 +27,6 @@ const PROTECTION_OPTIONS = [
 ];
 
 export function IntimacyTracker({ entries = [], onEntriesChange }) {
-  const [showTimePicker, setShowTimePicker] = useState(null); // Track which entry's time picker is shown
-
   /**
    * Add a new entry
    */
@@ -74,28 +72,6 @@ export function IntimacyTracker({ entries = [], onEntriesChange }) {
     handleUpdateEntry(entryId, 'activities', activities);
   };
 
-  /**
-   * Format time for display
-   */
-  const formatTime = (date) => {
-    if (!date) return '--:--';
-    const timeDate = typeof date === 'string' ? new Date(date) : date;
-    return timeDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  /**
-   * Handle time change from picker
-   */
-  const handleTimeChange = (entryId, event, selectedTime) => {
-    if (Platform.OS === 'android') {
-      setShowTimePicker(null);
-    }
-    
-    if (selectedTime) {
-      handleUpdateEntry(entryId, 'time', selectedTime);
-    }
-  };
-
   if (entries.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -128,27 +104,12 @@ export function IntimacyTracker({ entries = [], onEntriesChange }) {
             </View>
 
             {/* Time Picker */}
-            <View style={styles.field}>
-              <Text style={styles.label}>Time</Text>
-              <Pressable 
-                style={styles.timeButton}
-                onPress={() => setShowTimePicker(entry.id)}
-              >
-                <Text style={styles.timeButtonText}>
-                  {formatTime(entry.time)} ⏰
-                </Text>
-              </Pressable>
-              
-              {(showTimePicker === entry.id || Platform.OS === 'ios') && (
-                <DateTimePicker
-                  value={entry.time instanceof Date ? entry.time : new Date(entry.time)}
-                  mode="time"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={(event, time) => handleTimeChange(entry.id, event, time)}
-                  style={styles.timePicker}
-                />
-              )}
-            </View>
+            <TimePicker
+              value={entry.time}
+              onChange={(time) => handleUpdateEntry(entry.id, 'time', time)}
+              label="Time"
+              placeholder="Set Time"
+            />
 
             {/* Activities */}
             <View style={styles.field}>
@@ -296,21 +257,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
-  },
-  timeButton: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.background,
-  },
-  timeButtonText: {
-    fontSize: typography.sizes.md,
-    color: colors.textPrimary,
-  },
-  timePicker: {
-    marginTop: spacing.sm,
   },
   checkboxGrid: {
     flexDirection: 'row',

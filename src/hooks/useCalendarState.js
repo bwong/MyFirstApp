@@ -102,13 +102,15 @@ export function useCalendarState(cycleData = {}, cardSettings = {}) {
     // Check card visibility from settings
     const isCycleVisible = cardSettings?.basics?.visible !== false;
     const isIntimacyVisible = cardSettings?.intimacy?.visible !== false;
+    const isFertilityVisible = cardSettings?.fertility?.visible !== false;
     
-    // Add flow background colors and intimacy dots from cycleData (respecting visibility)
+    // Add flow background colors and data dots from cycleData (respecting visibility)
     Object.keys(cycleData).forEach(dateString => {
       const entry = cycleData[dateString];
       const flowValue = entry?.cycle?.flow;
       const flowColor = flowValue && flowValue !== 'none' ? flowColors[flowValue] : null;
       const hasIntimacy = entry?.intimacy?.entries && entry.intimacy.entries.length > 0;
+      const hasFertility = entry?.fertility && Object.keys(entry.fertility).length > 0;
       
       const existingMark = baseMarks[dateString] || {};
       
@@ -130,13 +132,30 @@ export function useCalendarState(cycleData = {}, cardSettings = {}) {
         };
       }
       
+      // Add dots for intimacy and/or fertility data
+      const dots = [];
+      
       // Add purple dot for intimacy if intimacy card is visible
       if (isIntimacyVisible && hasIntimacy) {
-        mark.marked = true;
-        mark.dotColor = '#9333EA'; // Purple
+        dots.push({ key: 'intimacy', color: '#9333EA' }); // Purple
       }
       
-      if ((isCycleVisible && flowColor) || (isIntimacyVisible && hasIntimacy)) {
+      // Add teal dot for fertility if fertility card is visible
+      if (isFertilityVisible && hasFertility) {
+        dots.push({ key: 'fertility', color: '#14B8A6' }); // Teal
+      }
+      
+      // Apply dots if any exist
+      if (dots.length > 0) {
+        if (dots.length === 1) {
+          mark.marked = true;
+          mark.dotColor = dots[0].color;
+        } else {
+          mark.dots = dots;
+        }
+      }
+      
+      if ((isCycleVisible && flowColor) || (isIntimacyVisible && hasIntimacy) || (isFertilityVisible && hasFertility)) {
         baseMarks[dateString] = mark;
       }
     });

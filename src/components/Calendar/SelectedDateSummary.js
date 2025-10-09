@@ -20,15 +20,19 @@ export function SelectedDateSummary({
   // Extract data from cycleData
   const flowValue = cycleData?.cycle?.flow;
   const intimacyEntries = cycleData?.intimacy?.entries || [];
+  const fertilityData = cycleData?.fertility || {};
   
   // Check card visibility from settings
   const isCycleVisible = cardSettings?.basics?.visible !== false; // Default to true if not set
   const isIntimacyVisible = cardSettings?.intimacy?.visible !== false; // Default to true if not set
+  const isFertilityVisible = cardSettings?.fertility?.visible !== false; // Default to true if not set
   
   // Check if any VISIBLE data exists
+  const hasFertilityData = fertilityData && Object.keys(fertilityData).length > 0;
   const hasVisibleData = 
     (isCycleVisible && flowValue) || 
-    (isIntimacyVisible && intimacyEntries.length > 0);
+    (isIntimacyVisible && intimacyEntries.length > 0) ||
+    (isFertilityVisible && hasFertilityData);
 
   /**
    * Format flow value for display
@@ -127,6 +131,43 @@ export function SelectedDateSummary({
                     )}
                   </View>
                 ))}
+              </View>
+            )}
+
+            {/* Fertility Section - Only show if fertility card is visible */}
+            {isFertilityVisible && hasFertilityData && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Fertility Data</Text>
+                
+                {fertilityData.bbt && (
+                  <Text style={styles.sectionText}>
+                    BBT: {fertilityData.bbt}°F {fertilityData.bbt_time && `(${formatTime(fertilityData.bbt_time)})`}
+                  </Text>
+                )}
+                
+                {fertilityData.cervical_fluid && fertilityData.cervical_fluid !== 'none' && (
+                  <Text style={styles.sectionText}>
+                    Cervical Fluid: {fertilityData.cervical_fluid.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </Text>
+                )}
+                
+                {fertilityData.opk && (
+                  <Text style={styles.sectionText}>
+                    OPK: {fertilityData.opk.charAt(0).toUpperCase() + fertilityData.opk.slice(1)}
+                  </Text>
+                )}
+                
+                {fertilityData.pregnancy_test && (
+                  <Text style={styles.sectionText}>
+                    Pregnancy Test: {fertilityData.pregnancy_test.charAt(0).toUpperCase() + fertilityData.pregnancy_test.slice(1)}
+                  </Text>
+                )}
+                
+                {fertilityData.supplements && fertilityData.supplements.length > 0 && (
+                  <Text style={styles.sectionText}>
+                    Supplements: {fertilityData.supplements.join(', ')}
+                  </Text>
+                )}
               </View>
             )}
           </>

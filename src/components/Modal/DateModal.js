@@ -5,6 +5,7 @@ import { ArrowLeft, SaveAll } from 'lucide-react-native';
 import { CollapsibleCard } from './CollapsibleCard';
 import { FlowSelector } from './FlowSelector';
 import { IntimacyTracker } from './IntimacyTracker';
+import { FertilityTracker } from './FertilityTracker';
 import { modalStyles } from './ModalStyles';
 import { formatLocalCivilDate } from '../../utils/dateUtils';
 
@@ -23,7 +24,9 @@ export function DateModal({
   flowValue,
   onFlowChange,
   intimacyEntries,
-  onIntimacyEntriesChange
+  onIntimacyEntriesChange,
+  fertilityData,
+  onFertilityChange
 }) {
   // Define card information
   const cardInfo = {
@@ -100,7 +103,10 @@ export function DateModal({
             onToggle={() => onCardToggle('fertility')}
             onTogglePin={(value) => onTogglePin('fertility', value)}
           >
-            <Text style={modalStyles.sectionText}>Capture BBT, LH tests, cervical fluid, and more.</Text>
+            <FertilityTracker 
+              data={fertilityData} 
+              onChange={onFertilityChange}
+            />
           </CollapsibleCard>
         </>
       );
@@ -137,6 +143,11 @@ export function DateModal({
             <IntimacyTracker 
               entries={intimacyEntries} 
               onEntriesChange={onIntimacyEntriesChange}
+            />
+          ) : cardId === 'fertility' ? (
+            <FertilityTracker 
+              data={fertilityData} 
+              onChange={onFertilityChange}
             />
           ) : (
             <Text style={modalStyles.sectionText}>{info.description}</Text>

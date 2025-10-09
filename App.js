@@ -33,7 +33,7 @@ import { DatePickerModal } from './src/components/DatePicker/DatePickerModal';
 
 export default function App() {
   // Use custom hooks for state management
-  const { getFlowForDate, setFlowForDate, getIntimacyForDate, setIntimacyForDate, getDataForDate, cycleData } = useCycleData();
+  const { getFlowForDate, setFlowForDate, getIntimacyForDate, setIntimacyForDate, getFertilityForDate, setFertilityForDate, getDataForDate, cycleData } = useCycleData();
   const { modalVisible, modalDate, openModal, closeModal, openModalForCurrentDay } = useModalState();
   const { cards, handleCardToggle, togglePinOpen } = useFormState();
   const { settingsModalVisible, openSettingsModal, closeSettingsModal, datePickerModalVisible, openDatePickerModal, closeDatePickerModal, dataEntryPreferencesVisible, openDataEntryPreferences, closeDataEntryPreferences } = useNavigationState();
@@ -138,6 +138,8 @@ export default function App() {
               onFlowChange={(value) => modalDate && setFlowForDate(modalDate.dateString, value)}
               intimacyEntries={modalDate ? getIntimacyForDate(modalDate.dateString) : []}
               onIntimacyEntriesChange={(entries) => modalDate && setIntimacyForDate(modalDate.dateString, entries)}
+              fertilityData={modalDate ? getFertilityForDate(modalDate.dateString) : {}}
+              onFertilityChange={(data) => modalDate && setFertilityForDate(modalDate.dateString, data)}
             />
 
             {/* Settings Modal */}

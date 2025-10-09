@@ -159,6 +159,34 @@ export function useCycleData() {
   }, [updateDateData]);
 
   /**
+   * Get fertility data for a specific date
+   * @param {string} dateString - Date in YYYY-MM-DD format
+   * @returns {Object} Fertility data object
+   */
+  const getFertilityForDate = useCallback((dateString) => {
+    if (!dateString) return {};
+    const data = cycleData[dateString];
+    return data?.fertility || {};
+  }, [cycleData]);
+
+  /**
+   * Set fertility data for a specific date
+   * @param {string} dateString - Date in YYYY-MM-DD format
+   * @param {Object} data - Fertility data object
+   */
+  const setFertilityForDate = useCallback((dateString, data) => {
+    if (!dateString) return;
+
+    // Convert Date objects to ISO strings for storage
+    const serializedData = { ...data };
+    if (serializedData.bbt_time instanceof Date) {
+      serializedData.bbt_time = serializedData.bbt_time.toISOString();
+    }
+
+    updateDateData(dateString, 'fertility', serializedData);
+  }, [updateDateData]);
+
+  /**
    * Clear all data for a specific date
    * @param {string} dateString - Date in YYYY-MM-DD format
    */
@@ -238,6 +266,8 @@ export function useCycleData() {
     setFlowForDate,
     getIntimacyForDate,
     setIntimacyForDate,
+    getFertilityForDate,
+    setFertilityForDate,
     updateDateData,
     clearDataForDate,
     getAllDatesWithData,
